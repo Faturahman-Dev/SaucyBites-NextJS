@@ -1,0 +1,35 @@
+{
+  "name": "saucybites-nextjs",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "format": "prettier --write app lib scripts tests *.json *.ts *.mjs",
+    "db:init": "node --env-file-if-exists=.env.local scripts/db-init.mjs",
+    "db:import": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/import-backup.ts",
+    "test": "node scripts/run-tests.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "1.31.0",
+    "next": "^16.4.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "prettier": "3.6.2",
+    "tailwindcss": "4.2.1",
+    "typescript": "5.9.3"
+  }
+}
