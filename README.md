@@ -138,3 +138,4 @@ Referensi teknis:
 
 - https://nextjs.org/docs/app
 - https://nodejs.org/docs/latest-v24.x/api/sqlite.html
+"# SaucyBites-NextJS" 
