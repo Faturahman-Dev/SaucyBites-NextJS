@@ -220,9 +220,35 @@ status(
   }),
   403,
 );
+status(
+  await save(
+    'teriyaki',
+    'product',
+    {
+      ...product,
+      image:
+        'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=',
+    },
+    1,
+  ),
+  403,
+);
 globalThis.__testUser = { userId: 'o1', displayName: 'Owner', role: 'owner' };
 status(await save('mem1', 'member', { name: 'Anggota Baru', share: 20 }), 200);
-checks += 3;
+status(
+  await save(
+    'teriyaki',
+    'product',
+    {
+      ...product,
+      image:
+        'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=',
+    },
+    1,
+  ),
+  200,
+);
+checks += 5;
 
 const secret = 'test-secret-with-more-than-32-characters';
 const token = signSession('Agung', secret, 1000, 'team-password');

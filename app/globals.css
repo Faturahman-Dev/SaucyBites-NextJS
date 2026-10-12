@@ -760,6 +760,14 @@ svg {
   color: #b7752d;
   font-size: 22px;
   font-weight: 800;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.product-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .product-symbol.p1 {
   background: #fce1da;
@@ -986,6 +994,14 @@ svg {
   align-self: center;
   color: #be8849;
 }
+.cashier-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+  border: 2px solid #ffffffb8;
+}
 .cashier-card.p1 .cashier-icon {
   color: #ce765b;
 }
@@ -1035,6 +1051,60 @@ svg {
   justify-content: space-between;
   gap: 12px;
   min-height: 44px;
+}
+.recipe-photo-box {
+  position: relative;
+  margin-top: 14px;
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #f6f7f2;
+}
+.recipe-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.recipe-photo-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid #e2e6dc;
+  border-radius: 8px;
+  background: #fffffff0;
+  color: #3a4a38;
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.recipe-photo-badge:hover:not(:disabled) {
+  background: #fff;
+}
+.recipe-photo-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 64px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1.5px dashed #d3dac8;
+  border-radius: 12px;
+  background: #fafbf7;
+  color: #6a7d5c;
+  font-size: 12px;
+  font-weight: 600;
+}
+.recipe-photo-empty:hover:not(:disabled) {
+  background: #f1f5eb;
+  border-color: #b7c4a6;
 }
 .recipe-card h2 {
   min-height: 56px;
@@ -1620,6 +1690,76 @@ footer small {
   color: #8c9e77;
   font-size: 12px;
   line-height: 1.8;
+}
+.product-image-field {
+  margin-bottom: 20px;
+  padding: 14px;
+  border: 1px solid #e2e7d9;
+  border-radius: 12px;
+  background: #fafbf7;
+}
+.product-image-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #687a5c;
+  font-size: 12px;
+  font-weight: 600;
+}
+.product-image-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.product-image-preview {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 12px;
+  border: 1px solid #dce2d2;
+  background: #eff3e8;
+  color: #7d9367;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.product-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.product-image-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.product-image-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.product-image-buttons label.btn {
+  cursor: pointer;
+}
+.product-image-url {
+  width: 100%;
+  height: 38px;
+  padding: 8px 11px;
+  border: 1px solid #e2e7d9;
+  border-radius: 8px;
+  background: #fff;
+  color: #465c3a;
+  font-size: 13px;
+}
+.product-image-actions small {
+  color: #8e9e7d;
+  font-size: 11px;
+  line-height: 1.5;
 }
 .recipe-editor-heading {
   display: flex;

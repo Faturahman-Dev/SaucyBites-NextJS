@@ -79,7 +79,7 @@ async function mutate(req: Request, deleting: boolean) {
     return json({ error: 'Asal permintaan tidak diizinkan.' }, 403);
   try {
     const text = await req.text();
-    if (text.length > 50000) return json({ error: 'Data terlalu besar.' }, 413);
+    if (text.length > 500000) return json({ error: 'Data terlalu besar.' }, 413);
     const body = z
       .object({
         id: z.string().regex(/^[a-zA-Z0-9_-]{1,100}$/),
@@ -191,6 +191,19 @@ async function mutate(req: Request, deleting: boolean) {
             );
           }
           if (body.kind === 'product') {
+            if (
+              user.role === 'member' &&
+              (data.image || '') !== (existing?.data?.image || '')
+            ) {
+              await tx.rollback();
+              return json(
+                {
+                  error:
+                    'Gambar menu hanya dapat ditambahkan atau diubah oleh Owner (Pemilik).',
+                },
+                403,
+              );
+            }
             const ids = data.lines.map((l: any) => l.ingredientId);
             if (
               new Set(ids).size !== ids.length ||
@@ -383,6 +396,17 @@ async function mutate(req: Request, deleting: boolean) {
             400,
           );
         if (body.kind === 'product') {
+          if (
+            user.role === 'member' &&
+            (data.image || '') !== (existing?.data?.image || '')
+          )
+            return json(
+              {
+                error:
+                  'Gambar menu hanya dapat ditambahkan atau diubah oleh Owner (Pemilik).',
+              },
+              403,
+            );
           const ids = data.lines.map((l: any) => l.ingredientId);
           if (
             new Set(ids).size !== ids.length ||

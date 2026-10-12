@@ -121,19 +121,27 @@ export default async function Login({
             style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
           >
             <strong>
-              {error ? messages[error] || messages.invalid : 'Konfigurasi server belum lengkap di Vercel:'}
+              {error
+                ? messages[error] || messages.invalid
+                : 'Konfigurasi server belum lengkap di Vercel:'}
             </strong>
             {!isConfigured && (
               <div style={{ fontSize: '12px', lineHeight: '1.6' }}>
                 <p style={{ margin: '0 0 6px 0' }}>
-                  Buka <strong>Project Settings → Environment Variables</strong> di Vercel, lalu tambahkan:
+                  Buka <strong>Project Settings → Environment Variables</strong> di
+                  Vercel, lalu tambahkan:
                 </p>
                 <ul style={{ margin: '0 0 8px 18px', padding: 0 }}>
-                  <li><code>OWNER_ACCESS_PASSWORD</code> (Password untuk login Owner)</li>
-                  <li><code>TEAM_ACCESS_PASSWORD</code> (Password untuk login Anggota Tim)</li>
+                  <li>
+                    <code>OWNER_ACCESS_PASSWORD</code> (Password untuk login Owner)
+                  </li>
+                  <li>
+                    <code>TEAM_ACCESS_PASSWORD</code> (Password untuk login Anggota Tim)
+                  </li>
                 </ul>
                 <p style={{ margin: 0, fontWeight: 600 }}>
-                  ⚠️ Penting: Lakukan <strong>Redeploy</strong> di Vercel setelah menambahkan Environment Variables agar aktif!
+                  ⚠️ Penting: Lakukan <strong>Redeploy</strong> di Vercel setelah
+                  menambahkan Environment Variables agar aktif!
                 </p>
               </div>
             )}

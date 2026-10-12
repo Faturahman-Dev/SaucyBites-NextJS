@@ -21,6 +21,21 @@ export const schemas = {
     name,
     price: z.number().finite().min(0).max(1e9),
     target: z.number().int().min(0).max(1e6),
+    image: z
+      .string()
+      .trim()
+      .max(400000)
+      .refine(
+        (v) =>
+          !v ||
+          v.startsWith('data:image/') ||
+          v.startsWith('https://') ||
+          v.startsWith('http://') ||
+          v.startsWith('/'),
+        'Format gambar tidak valid',
+      )
+      .optional()
+      .default(''),
     lines: z.array(z.object({ ingredientId: z.string().min(1).max(100), qty })).max(100),
   }),
   sale: z.object({

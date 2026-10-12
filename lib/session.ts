@@ -15,8 +15,14 @@ export function passwordMatches(input: string, expected: string): boolean {
     return timingSafeEqual(ha, hb);
   };
 
-  const cleanInput = input.trim().replace(/^["']|["']$/g, '').trim();
-  const cleanExpected = expected.trim().replace(/^["']|["']$/g, '').trim();
+  const cleanInput = input
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .trim();
+  const cleanExpected = expected
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .trim();
 
   return (
     safeCompare(input, expected) ||

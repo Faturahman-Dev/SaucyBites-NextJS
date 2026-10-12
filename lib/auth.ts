@@ -5,7 +5,10 @@ import { COOKIE_NAME, verifySession, type TeamUser, type UserRole } from './sess
 
 function cleanEnv(val: string | undefined): string {
   if (!val) return '';
-  return val.trim().replace(/^["']|["']$/g, '').trim();
+  return val
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .trim();
 }
 
 export function getOwnerPassword(): string {

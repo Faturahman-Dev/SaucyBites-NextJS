@@ -29,6 +29,7 @@ import {
   Receipt,
   Clock,
   Sparkles,
+  ImagePlus,
 } from 'lucide-react';
 import {
   products,
@@ -63,7 +64,7 @@ const labels: Record<Kind, string> = {
 };
 const defaults: Record<Kind, any> = {
   ingredient: { name: '', price: '', packQty: '', unit: 'g' },
-  product: { name: '', price: '', target: 0, lines: [] },
+  product: { name: '', price: '', target: 0, image: '', lines: [] },
   sale: {
     productId: 'teriyaki',
     qty: 1,
@@ -86,6 +87,51 @@ function generateId(): string {
   }
 
   return `item-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      reject(new Error('Pilih file gambar (JPG, PNG, atau WebP).'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Gagal membaca file gambar.'));
+    reader.onload = () => {
+      const img = new window.Image();
+      img.onerror = () => reject(new Error('Format gambar tidak dapat dimuat.'));
+      img.onload = () => {
+        const maxDim = 420;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Gagal memproses gambar.'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, w, h);
+        let dataUrl = canvas.toDataURL('image/webp', 0.78);
+        if (!dataUrl.startsWith('data:image/webp')) {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.78);
+        }
+        resolve(dataUrl);
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 const dateLabel = (date: string) =>
@@ -390,7 +436,11 @@ export default function TeamApp({
   }
   function csv(list: Row[], name: string) {
     const keys = Array.from(
-      new Set(list.flatMap((r) => Object.keys(r.data).filter((k) => k !== 'lines'))),
+      new Set(
+        list.flatMap((r) =>
+          Object.keys(r.data).filter((k) => k !== 'lines' && k !== 'image'),
+        ),
+      ),
     );
     const cell = (v: any) => {
       const s = String(v ?? '');
@@ -809,7 +859,17 @@ export default function TeamApp({
                           className="menu-row"
                         >
                           <span className={'product-symbol p' + i}>
-                            {p.id === 'chocolate' ? 'M' : 'C'}
+                            {p.data.image ? (
+                              <img
+                                src={p.data.image}
+                                alt={p.data.name}
+                                className="product-thumb"
+                              />
+                            ) : p.id === 'chocolate' ? (
+                              'M'
+                            ) : (
+                              'C'
+                            )}
                           </span>
                           <div>
                             <strong>{p.data.name}</strong>
@@ -937,7 +997,13 @@ export default function TeamApp({
                       }}
                     >
                       <span className="cashier-icon">
-                        {p.id === 'chocolate' ? (
+                        {p.data.image ? (
+                          <img
+                            src={p.data.image}
+                            alt={p.data.name}
+                            className="cashier-thumb"
+                          />
+                        ) : p.id === 'chocolate' ? (
                           <Wallet size={28} />
                         ) : (
                           <Flame size={28} />
@@ -1164,7 +1230,17 @@ export default function TeamApp({
                     <section className="panel recipe-card" key={p.id}>
                       <div className="recipe-top">
                         <span className={'product-symbol p' + i}>
-                          {p.id === 'chocolate' ? 'M' : 'C'}
+                          {p.data.image ? (
+                            <img
+                              src={p.data.image}
+                              alt={p.data.name}
+                              className="product-thumb"
+                            />
+                          ) : p.id === 'chocolate' ? (
+                            'M'
+                          ) : (
+                            'C'
+                          )}
                         </span>
                         <span
                           className={
@@ -1174,6 +1250,35 @@ export default function TeamApp({
                           {c.ready && p.data.price > 0 ? 'Siap jual' : 'Belum lengkap'}
                         </span>
                       </div>
+                      {p.data.image ? (
+                        <div className="recipe-photo-box">
+                          <img
+                            src={p.data.image}
+                            alt={p.data.name}
+                            className="recipe-photo"
+                          />
+                          {role === 'owner' && (
+                            <button
+                              type="button"
+                              className="recipe-photo-badge"
+                              disabled={!loaded}
+                              onClick={() => open('product', p)}
+                            >
+                              <ImagePlus size={14} /> Ubah gambar
+                            </button>
+                          )}
+                        </div>
+                      ) : role === 'owner' ? (
+                        <button
+                          type="button"
+                          className="recipe-photo-empty"
+                          disabled={!loaded}
+                          onClick={() => open('product', p)}
+                        >
+                          <ImagePlus size={20} />
+                          <span>Tambahkan gambar menu</span>
+                        </button>
+                      ) : null}
                       <h2>{p.data.name}</h2>
                       <p>{p.data.target || 0} porsi target penjualan</p>
                       <div className="recipe-numbers">
@@ -1217,7 +1322,9 @@ export default function TeamApp({
                         onClick={() => open('product', p)}
                       >
                         <Pencil size={16} />
-                        Atur resep & harga
+                        {role === 'owner'
+                          ? 'Atur menu, gambar & resep'
+                          : 'Atur resep & harga'}
                       </button>
                     </section>
                   );
@@ -1895,6 +2002,85 @@ export default function TeamApp({
                   value={form.name}
                   onChange={(v) => set('name', v)}
                 />
+                {role === 'owner' ? (
+                  <div className="product-image-field">
+                    <div className="product-image-header">
+                      <span>Gambar menu (opsional)</span>
+                      <span className="role-badge owner">👑 Khusus Owner</span>
+                    </div>
+                    <div className="product-image-controls">
+                      <div className="product-image-preview">
+                        {form.image ? (
+                          <img src={form.image} alt={form.name || 'Preview menu'} />
+                        ) : (
+                          <ImagePlus size={24} />
+                        )}
+                      </div>
+                      <div className="product-image-actions">
+                        <div className="product-image-buttons">
+                          <label className="btn subtle">
+                            <ImagePlus size={16} />
+                            {form.image ? 'Ganti foto dari perangkat' : 'Pilih foto menu'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              hidden
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                e.target.value = '';
+                                if (!file) return;
+                                try {
+                                  const dataUrl = await compressImage(file);
+                                  set('image', dataUrl);
+                                  setFormError('');
+                                } catch (err) {
+                                  setFormError(
+                                    err instanceof Error
+                                      ? err.message
+                                      : 'Gagal memuat gambar.',
+                                  );
+                                }
+                              }}
+                            />
+                          </label>
+                          {form.image && (
+                            <button
+                              type="button"
+                              className="btn subtle"
+                              onClick={() => set('image', '')}
+                            >
+                              <Trash2 size={15} />
+                              Hapus
+                            </button>
+                          )}
+                        </div>
+                        <input
+                          type="url"
+                          className="product-image-url"
+                          placeholder="Atau tempel link gambar (https://...)"
+                          value={
+                            form.image && !form.image.startsWith('data:')
+                              ? form.image
+                              : ''
+                          }
+                          onChange={(e) => set('image', e.target.value)}
+                        />
+                        <small>
+                          Foto otomatis dikompres agar ringan & langsung tersimpan untuk
+                          seluruh tim.
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="notice" style={{ margin: '0 0 18px' }}>
+                    <ImagePlus size={17} />
+                    <p>
+                      Opsi menambahkan atau mengubah gambar menu hanya tersedia untuk hak
+                      akses <strong>Owner (Pemilik)</strong>.
+                    </p>
+                  </div>
+                )}
                 <div className="form-grid">
                   <Field
                     label="Harga jual / porsi (Rp)"
