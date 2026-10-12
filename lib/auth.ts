@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { createHash } from 'node:crypto';
 import { COOKIE_NAME, verifySession, type TeamUser, type UserRole } from './session';
 
 export function getOwnerPassword(): string {
@@ -18,19 +19,43 @@ export function getMemberPassword(): string {
 }
 
 export function getSessionSecret(): string {
-  return (
-    process.env.SESSION_SECRET ||
-    (process.env.NODE_ENV === 'development'
-      ? 'saucybites-dev-secret-key-at-least-32-chars-long'
-      : '')
-  );
+  if (process.env.SESSION_SECRET && process.env.SESSION_SECRET.length >= 32) {
+    return process.env.SESSION_SECRET;
+  }
+  if (process.env.SESSION_SECRET && process.env.SESSION_SECRET.length > 0) {
+    return createHash('sha256')
+      .update(process.env.SESSION_SECRET + '_saucybites_secret_salt')
+      .digest('hex');
+  }
+  const ownerPw = getOwnerPassword();
+  const memberPw = getMemberPassword();
+  if (ownerPw || memberPw) {
+    return createHash('sha256')
+      .update(`${ownerPw}:${memberPw}:saucybites_session_secret_2026`)
+      .digest('hex');
+  }
+  if (process.env.NODE_ENV === 'development') {
+    return 'saucybites-dev-secret-key-at-least-32-chars-long';
+  }
+  return '';
 }
 
-export function loginConfigured() {
+export function loginConfigured(): boolean {
   const secret = getSessionSecret();
   return (
     secret.length >= 32 && (Boolean(getOwnerPassword()) || Boolean(getMemberPassword()))
   );
+}
+
+export function getConfigIssues(): string[] {
+  const issues: string[] = [];
+  const ownerPw = getOwnerPassword();
+  const memberPw = getMemberPassword();
+
+  if (!ownerPw && !memberPw) {
+    issues.push('OWNER_ACCESS_PASSWORD atau TEAM_ACCESS_PASSWORD belum diisi di Vercel.');
+  }
+  return issues;
 }
 
 export async function getTeamUserFromCookie(): Promise<TeamUser | null> {

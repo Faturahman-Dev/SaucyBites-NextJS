@@ -6,6 +6,7 @@ import {
   getOwnerPassword,
   getMemberPassword,
   getSessionSecret,
+  getConfigIssues,
 } from '@/lib/auth';
 import {
   COOKIE_NAME,
@@ -90,9 +91,11 @@ export default async function Login({
 
   const { error, role: queryRole } = await searchParams;
   const initialRole: UserRole = queryRole === 'member' ? 'member' : 'owner';
+  const isConfigured = loginConfigured();
+  const configIssues = getConfigIssues();
 
   const messages: Record<string, string> = {
-    config: 'Konfigurasi password server belum lengkap.',
+    config: 'Konfigurasi password server belum lengkap di Vercel.',
     rate: 'Terlalu banyak percobaan login. Tunggu 10 menit lalu coba lagi.',
     invalid: `Password atau nama untuk ${initialRole === 'owner' ? 'Owner (Pemilik)' : 'Anggota Tim'} belum benar. Coba lagi.`,
   };
@@ -108,16 +111,36 @@ export default async function Login({
         <h1>Masuk ke Sistem</h1>
         <p>Pilih peran Anda untuk mulai mengelola atau mencatat transaksi usaha.</p>
 
-        {(!loginConfigured() || error) && (
-          <div className="notice warning" role="alert">
-            {messages[error || 'config'] || messages.invalid}
+        {(!isConfigured || error) && (
+          <div
+            className="notice warning"
+            role="alert"
+            style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+          >
+            <strong>
+              {error ? messages[error] || messages.invalid : 'Konfigurasi server belum lengkap di Vercel:'}
+            </strong>
+            {!isConfigured && (
+              <div style={{ fontSize: '12px', lineHeight: '1.6' }}>
+                <p style={{ margin: '0 0 6px 0' }}>
+                  Buka <strong>Project Settings → Environment Variables</strong> di Vercel, lalu tambahkan:
+                </p>
+                <ul style={{ margin: '0 0 8px 18px', padding: 0 }}>
+                  <li><code>OWNER_ACCESS_PASSWORD</code> (Password untuk login Owner)</li>
+                  <li><code>TEAM_ACCESS_PASSWORD</code> (Password untuk login Anggota Tim)</li>
+                </ul>
+                <p style={{ margin: 0, fontWeight: 600 }}>
+                  ⚠️ Penting: Lakukan <strong>Redeploy</strong> di Vercel setelah menambahkan Environment Variables agar aktif!
+                </p>
+              </div>
+            )}
           </div>
         )}
 
         <LoginForm
           initialRole={initialRole}
           loginAction={login}
-          loginConfigured={loginConfigured()}
+          loginConfigured={isConfigured}
           isDev={process.env.NODE_ENV === 'development'}
         />
 
