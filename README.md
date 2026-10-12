@@ -42,17 +42,43 @@ Di **production**, ubah `OWNER_ACCESS_PASSWORD`, `TEAM_ACCESS_PASSWORD`, dan bua
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-## Production / dipakai tim dari perangkat berbeda
+## Deploy ke Vercel (dengan Turso Cloud SQLite)
+
+Vercel menggunakan serverless functions tanpa penyimpanan file persisten lokal. Proyek ini sudah terintegrasi dengan **Turso** (Cloud SQLite gratis), sehingga seluruh data transaksi dan akun tersimpan permanen di cloud.
+
+1. **Buat database di Turso** (Gratis di [turso.tech](https://turso.tech)):
+   - Login ke dashboard Turso, klik **Create Database** (beri nama misalnya `saucybites`).
+   - Atau lewat CLI: `turso db create saucybites`.
+   - Dapatkan **Database URL** (`libsql://saucybites-...turso.io`) dan **Auth Token**.
+2. **Inisialisasi tabel di Turso**:
+   - Isi `TURSO_DATABASE_URL` dan `TURSO_AUTH_TOKEN` di `.env.local`, lalu jalankan:
+     ```sh
+     npm run db:init
+     ```
+   - *Catatan: Aplikasi juga otomatis membuat tabel yang diperlukan saat pertama kali dijalankan.*
+3. **Deploy di Vercel**:
+   - Push commit terbaru Anda ke repository GitHub:
+     ```sh
+     git push origin main
+     ```
+   - Di [Vercel Dashboard](https://vercel.com), klik **Add New Project** → pilih repository `SaucyBites-NextJS`.
+   - Di bagian **Environment Variables**, tambahkan:
+     - `TURSO_DATABASE_URL` = URL database Turso Anda
+     - `TURSO_AUTH_TOKEN` = Token autentikasi Turso
+     - `OWNER_ACCESS_PASSWORD` = Password login Owner
+     - `TEAM_ACCESS_PASSWORD` = Password login Anggota Tim
+     - `SESSION_SECRET` = String acak minimal 32 karakter
+   - Klik **Deploy**!
+
+## Alternatif: Production di Server Node.js / VPS
+
+Jika ingin memakai file SQLite lokal tanpa Turso, tempatkan aplikasi pada server dengan disk persisten (seperti VPS atau Railway):
 
 ```sh
 npm run db:init
 npm run build
 npm start
 ```
-
-Tempatkan aplikasi pada **satu server Node.js yang memiliki disk persisten**, dengan reverse proxy HTTPS dan environment variables tersebut. Simpan DATABASE_PATH di volume persisten; lindungi dan cadangkan database. Semua perangkat mengakses URL server yang sama. Membuka proyek terpisah di laptop masing-masing akan menghasilkan database terpisah.
-
-SQLite pada versi ini tidak cocok untuk deployment serverless dengan filesystem sementara, termasuk Vercel Functions. Untuk deployment seperti itu, ganti `lib/database.ts` dan query `app/api/records/route.ts` ke PostgreSQL/Supabase/Turso, lalu sesuaikan migrasinya. Gunakan satu proses Next.js untuk versi SQLite ini.
 
 ## Memindahkan data dari aplikasi online
 
