@@ -66,6 +66,12 @@ async function mutate(req: Request, deleting: boolean) {
         data: z.unknown().optional(),
       })
       .parse(JSON.parse(text));
+    if (
+      user.role === 'member' &&
+      (body.kind === 'member' || body.kind === 'payout' || body.kind === 'capital')
+    ) {
+      return json({ error: 'Fitur ini hanya dapat dikelola oleh Owner (Pemilik).' }, 403);
+    }
     return transaction((db) => {
       const rows = load(),
         existing = rows.find((r) => r.id === body.id);

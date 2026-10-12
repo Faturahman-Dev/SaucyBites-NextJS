@@ -14,30 +14,33 @@ npm run db:init
 npm run dev
 ```
 
-4. Buka **http://localhost:3000**. Development tanpa password memakai nama `Pengembang lokal`.
+4. Buka **http://localhost:3000**. Di mode development, aplikasi otomatis mendeteksi peran sebagai **👑 Owner (Pemilik)**.
 5. Isi bahan → resep/harga jual → arus uang → penjualan. Angka harga dan takaran awal sengaja kosong.
 
 `node:sqlite` bawaan Node dapat menampilkan peringatan experimental; ini bukan error instalasi. Tidak perlu memasang database secara terpisah.
 
-## Aktifkan login tim
+## Autentikasi: Owner (Pemilik) & Anggota Tim
+
+Aplikasi mendukung peran terpisah:
+- **👑 Owner (Pemilik)**: Memiliki akses penuh termasuk pengaturan persentase bagi laba tim, penyetoran modal usaha, penarikan dana/laba, serta manajemen resep menu.
+- **👥 Anggota Tim**: Berfokus pada operasional kasir penjualan, pencatatan pembelian bahan, dan biaya harian.
 
 Salin `.env.example` menjadi `.env.local` (bisa melalui File Explorer/VS Code). Isi:
 
 ```env
 DATABASE_PATH=./data/saucybites.sqlite
-TEAM_ACCESS_PASSWORD=isi-password-baru-milik-tim
-SESSION_SECRET=isi-random-minimal-32-karakter
+OWNER_ACCESS_PASSWORD=owner123
+TEAM_ACCESS_PASSWORD=tim123
+SESSION_SECRET=saucybites-dev-secret-key-at-least-32-chars-long
 ```
 
-Buat nilai acak SESSION_SECRET melalui:
+Di mode **development**, password default sudah tersedia (`owner123` untuk Owner dan `tim123` untuk Anggota) dengan tombol login cepat 1-klik di halaman `/login`.
+
+Di **production**, ubah `OWNER_ACCESS_PASSWORD`, `TEAM_ACCESS_PASSWORD`, dan buat `SESSION_SECRET` acak baru minimal 32 karakter melalui:
 
 ```sh
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
-
-Restart server setelah mengubah konfigurasi. Setiap anggota memasukkan nama pencatat dan password bersama. Nama belum diverifikasi sebagai akun individu; semua yang mengetahui password memiliki hak edit yang sama. Session bertahan 7 hari dan menggunakan cookie bertanda tangan, HttpOnly, dan SameSite=Lax. Mengganti password/SESSION_SECRET membatalkan session lama.
-
-Di **production**, login membutuhkan password serta SESSION_SECRET yang valid; aplikasi tidak membuka akses otomatis. Gunakan HTTPS karena cookie production memakai Secure. Login memiliki pembatasan 10 percobaan per IP dalam 10 menit di memori proses; jika berkembang ke banyak server, pindahkan pembatasan dan autentikasi ke layanan terpusat.
 
 ## Production / dipakai tim dari perangkat berbeda
 

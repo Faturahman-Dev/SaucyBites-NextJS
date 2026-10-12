@@ -196,7 +196,13 @@ function Select({
     </label>
   );
 }
-export default function TeamApp({ user }: { user: string }) {
+export default function TeamApp({
+  user,
+  role = 'owner',
+}: {
+  user: string;
+  role?: 'owner' | 'member';
+}) {
   const [section, setSection] = useState('overview'),
     [rows, setRows] = useState<Row[]>([]),
     [activities, setActivities] = useState<any[]>([]),
@@ -416,26 +422,34 @@ export default function TeamApp({ user }: { user: string }) {
       {text || 'Tambah ' + labels[kind].toLowerCase()}
     </button>
   );
-  const actions = (r: Row) => (
-    <div className="row-actions">
-      {r.kind !== 'sale' && (
+  const actions = (r: Row) => {
+    if (
+      role !== 'owner' &&
+      (r.kind === 'member' || r.kind === 'payout' || r.kind === 'capital')
+    ) {
+      return null;
+    }
+    return (
+      <div className="row-actions">
+        {r.kind !== 'sale' && (
+          <button
+            className="icon-btn"
+            aria-label={'Ubah ' + (r.data.name || 'catatan')}
+            onClick={() => open(r.kind, r)}
+          >
+            <Pencil size={15} />
+          </button>
+        )}
         <button
-          className="icon-btn"
-          aria-label={'Ubah ' + (r.data.name || 'catatan')}
-          onClick={() => open(r.kind, r)}
+          className="icon-btn danger"
+          aria-label={'Batalkan ' + (r.data.name || r.data.productName)}
+          onClick={() => setConfirm(r)}
         >
-          <Pencil size={15} />
+          <Trash2 size={15} />
         </button>
-      )}
-      <button
-        className="icon-btn danger"
-        aria-label={'Batalkan ' + (r.data.name || r.data.productName)}
-        onClick={() => setConfirm(r)}
-      >
-        <Trash2 size={15} />
-      </button>
-    </div>
-  );
+      </div>
+    );
+  };
   const filteredSales = sales.filter(
     (r) =>
       (!saleDate || r.data.date === saleDate) &&
@@ -506,12 +520,21 @@ export default function TeamApp({ user }: { user: string }) {
             <p>Data bersama, diperbarui otomatis setiap 15 detik.</p>
           </div>
           <div className="profile">
-            <span className="avatar">{user.charAt(0).toUpperCase()}</span>
+            <span className={`avatar ${role === 'owner' ? 'owner' : ''}`}>
+              {user.charAt(0).toUpperCase()}
+            </span>
             <div>
-              <strong>{user.split('@')[0]}</strong>
-              <small>Anggota ruang SaucyBites</small>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <strong>{user.split('@')[0]}</strong>
+                <span className={`role-badge ${role}`}>
+                  {role === 'owner' ? '👑 Owner' : '👥 Anggota'}
+                </span>
+              </div>
+              <small>
+                {role === 'owner' ? 'Pemilik SaucyBites' : 'Anggota tim SaucyBites'}
+              </small>
             </div>
-            <a href="/logout" aria-label="Keluar">
+            <a href="/logout" title="Keluar / Ganti Akun" aria-label="Keluar">
               <LogOut size={17} />
             </a>
           </div>
@@ -537,6 +560,9 @@ export default function TeamApp({ user }: { user: string }) {
             <span>Ruang SaucyBites</span>
             <ChevronRight size={14} />
             <strong>{sections.find((s) => s.id === section)?.name}</strong>
+            <span className={`role-badge ${role}`} style={{ marginLeft: '8px' }}>
+              {role === 'owner' ? '👑 Owner' : '👥 Anggota'}
+            </span>
           </div>
           <div className="top-actions">
             <span className={'sync-status ' + (error ? 'offline' : '')}>
@@ -627,9 +653,14 @@ export default function TeamApp({ user }: { user: string }) {
                   : section === 'recipes'
                     ? button('product', 'Tambah menu')
                     : section === 'money'
-                      ? button(moneyTab)
+                      ? (moneyTab === 'capital' || moneyTab === 'payout') &&
+                        role !== 'owner'
+                        ? null
+                        : button(moneyTab)
                       : section === 'team'
-                        ? button('member')
+                        ? role === 'owner'
+                          ? button('member')
+                          : null
                         : null}
             </div>
           </div>
@@ -1243,6 +1274,16 @@ export default function TeamApp({ user }: { user: string }) {
                   </button>
                 ))}
               </div>
+              {(moneyTab === 'capital' || moneyTab === 'payout') && role !== 'owner' && (
+                <div className="notice" style={{ margin: '14px 0' }}>
+                  <CircleHelp size={18} />
+                  <p>
+                    Kategori <strong>{labels[moneyTab]}</strong> hanya dapat dicatat dan
+                    dikelola oleh <strong>Owner (Pemilik)</strong>. Anggota tim dapat
+                    meninjau riwayat transaksi yang ada.
+                  </p>
+                </div>
+              )}
               <section className="panel">
                 <div className="panel-heading">
                   <div>
@@ -1339,7 +1380,12 @@ export default function TeamApp({ user }: { user: string }) {
                 ) : (
                   <Empty
                     title={'Belum ada ' + labels[moneyTab].toLowerCase() + '.'}
-                    action={button(moneyTab)}
+                    action={
+                      (moneyTab === 'capital' || moneyTab === 'payout') &&
+                      role !== 'owner'
+                        ? undefined
+                        : button(moneyTab)
+                    }
                   >
                     Catat transaksi aktual untuk melihat pergerakan dana usaha.
                   </Empty>
@@ -1488,6 +1534,15 @@ export default function TeamApp({ user }: { user: string }) {
                       {shares.toLocaleString('id-ID')}%
                     </span>
                   </div>
+                  {role !== 'owner' && (
+                    <div className="notice" style={{ margin: '12px 0' }}>
+                      <CircleHelp size={17} />
+                      <p>
+                        Anda masuk sebagai <strong>Anggota Tim</strong>. Porsi bagi laba
+                        dan penarikan dana hanya dapat diatur oleh <strong>Owner</strong>.
+                      </p>
+                    </div>
+                  )}
                   {members.length ? (
                     <div className="member-list">
                       {members.map((m) => (
@@ -1506,14 +1561,16 @@ export default function TeamApp({ user }: { user: string }) {
                   ) : (
                     <Empty
                       title="Tentukan pembagian yang adil."
-                      action={button('member', 'Tambah anggota')}
+                      action={
+                        role === 'owner' ? button('member', 'Tambah anggota') : undefined
+                      }
                     >
                       Masukkan nama dan porsi laba sesuai kesepakatan tim.
                     </Empty>
                   )}
                   <div className="panel-footnote">
-                    Daftar ini untuk hitungan bagi laba. Akses aplikasi memakai password
-                    tim yang dikonfigurasi di server.
+                    Daftar ini untuk hitungan bagi laba. Akses aplikasi memakai
+                    autentikasi server.
                   </div>
                 </section>
                 <section className="panel">
@@ -1576,45 +1633,59 @@ export default function TeamApp({ user }: { user: string }) {
                       kesepakatan persentase lengkap.
                     </Empty>
                   )}
-                  <button
-                    className="btn subtle wide"
-                    disabled={!loaded}
-                    onClick={() => {
-                      choose('money');
-                      setMoneyTab('payout');
-                    }}
-                  >
-                    Catat penarikan dana <ArrowUpRight size={16} />
-                  </button>
+                  {role === 'owner' ? (
+                    <button
+                      className="btn subtle wide"
+                      disabled={!loaded}
+                      onClick={() => {
+                        choose('money');
+                        setMoneyTab('payout');
+                      }}
+                    >
+                      Catat penarikan dana <ArrowUpRight size={16} />
+                    </button>
+                  ) : (
+                    <p
+                      style={{
+                        fontSize: '12px',
+                        color: '#64748b',
+                        textAlign: 'center',
+                        margin: '8px 0',
+                      }}
+                    >
+                      🔒 Penarikan dana hanya dapat dicatat oleh Owner.
+                    </p>
+                  )}
                 </section>
               </div>
               <section className="panel">
                 <div className="panel-heading">
                   <div>
                     <h2>Kolaborasi tim</h2>
-                    <p>Catatan finansial bersama untuk pengunjung yang diberi akses</p>
+                    <p>
+                      Catatan finansial bersama antara Owner (Pemilik) dan Anggota Tim
+                    </p>
                   </div>
                   <Cloud size={22} />
                 </div>
                 <div className="guide-copy">
                   <p>
-                    Versi Next.js memakai nama pencatat dan password bersama milik tim.
-                    Setelah server dan password dikonfigurasi, bagikan alamat aplikasi
-                    serta password kepada anggota tim melalui saluran yang kalian gunakan.
-                    Semua anggota melihat database server yang sama.
+                    Aplikasi SaucyBites menyediakan autentikasi terpisah antara{' '}
+                    <strong>Pemilik (Owner)</strong> dan <strong>Anggota Tim</strong>.
+                    Owner memiliki kendali penuh untuk menentukan porsi bagi laba,
+                    menyetorkan modal, melakukan penarikan dana usaha, serta mengatur menu
+                    dan resep. Anggota tim memiliki akses untuk melayani kasir penjualan,
+                    mencatat pembelian bahan, dan biaya operasional harian.
                   </p>
                   <p>
-                    Setiap penyimpanan mencatat nama yang dimasukkan saat login; nama ini
-                    belum diverifikasi sebagai akun individu. Jika dua orang mengubah
-                    catatan yang sama, aplikasi meminta memuat ulang agar perubahan
-                    anggota lain tidak tertimpa. Semua anggota yang mengetahui password
-                    tim bisa mengubah data; aplikasi belum memiliki peran kasir/admin
-                    terpisah.
+                    Setiap penyimpanan mencatat nama pengguna yang dimasukkan saat login.
+                    Semua anggota dan owner melihat database yang sama secara real-time.
+                    Jika dua orang mengubah catatan yang sama, aplikasi meminta memuat
+                    ulang agar perubahan rekan lain tidak tertimpa.
                   </p>
                   <p>
-                    Nama pada daftar bagi laba tidak otomatis mengundang atau memberi
-                    akses. Unduh cadangan JSON untuk arsip data dan CSV untuk laporan
-                    transaksi.
+                    Nama pada daftar bagi laba digunakan untuk simulasi pembagian laba.
+                    Unduh cadangan JSON untuk arsip data dan CSV untuk laporan transaksi.
                   </p>
                 </div>
               </section>

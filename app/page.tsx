@@ -4,5 +4,5 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export default async function Page() {
   const user = await requireTeamUser();
-  return <TeamApp user={user.displayName} />;
+  return <TeamApp user={user.displayName} role={user.role} />;
 }

@@ -208,6 +208,22 @@ status(
   403,
 );
 
+globalThis.__testUser = { userId: 'm1', displayName: 'Kasir', role: 'member' };
+status(await save('mem1', 'member', { name: 'Anggota Baru', share: 20 }), 403);
+status(
+  await save('pay1', 'payout', {
+    name: 'Agung',
+    amount: 50000,
+    date: sale.date,
+    type: 'Bagi laba',
+    note: '',
+  }),
+  403,
+);
+globalThis.__testUser = { userId: 'o1', displayName: 'Owner', role: 'owner' };
+status(await save('mem1', 'member', { name: 'Anggota Baru', share: 20 }), 200);
+checks += 3;
+
 const secret = 'test-secret-with-more-than-32-characters';
 const token = signSession('Agung', secret, 1000, 'team-password');
 assert.equal(verifySession(token, secret, 2000, 'team-password').displayName, 'Agung');
@@ -221,7 +237,15 @@ assert.equal(verifySession(token, secret, 2000, 'new-password'), null);
 assert.equal(verifySession('broken', secret), null);
 assert.equal(passwordMatches('right', 'right'), true);
 assert.equal(passwordMatches('wrong', 'right'), false);
-checks += 8;
+const ownerToken = signSession('OwnerAgung', secret, 1000, 'owner-pass', 'owner');
+const verifiedOwner = verifySession(ownerToken, secret, 2000, 'owner-pass');
+assert.equal(verifiedOwner.role, 'owner');
+assert.equal(verifiedOwner.displayName, 'OwnerAgung');
+const memberToken = signSession('KasirBudi', secret, 1000, 'member-pass', 'member');
+const verifiedMember = verifySession(memberToken, secret, 2000, 'member-pass');
+assert.equal(verifiedMember.role, 'member');
+assert.equal(verifiedMember.displayName, 'KasirBudi');
+checks += 12;
 const db = getDb();
 assert.throws(() =>
   transaction((connection) => {

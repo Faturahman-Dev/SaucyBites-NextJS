@@ -253,6 +253,31 @@ svg {
   color: #a2b4a5;
   min-height: 34px;
 }
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.role-badge.owner {
+  background: #fef08a;
+  color: #713f12;
+  border: 1px solid #facc15;
+}
+.role-badge.member {
+  background: #bbf7d0;
+  color: #14532d;
+  border: 1px solid #86efac;
+}
+.avatar.owner {
+  background: #facc15;
+  color: #713f12;
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.4);
+}
 .app-shell main {
   margin-left: var(--sidebar-width);
   min-width: 0;
@@ -1711,6 +1736,66 @@ footer small {
   color: #8b9a7a;
   font-size: 11px;
   line-height: 1.8;
+}
+.login-role-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.login-role-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfbf9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #556943;
+}
+.login-role-tab:hover {
+  background: #f4f6ee;
+  border-color: #d1dbc8;
+}
+.login-role-tab strong {
+  font-size: 13px;
+  color: #273722;
+}
+.login-role-tab small {
+  font-size: 11px;
+  color: #7b8e6c;
+}
+.login-role-tab.active {
+  border-color: var(--green);
+  background: #edf5eb;
+  color: var(--green);
+}
+.login-role-tab.active.owner-tab {
+  border-color: #eab308;
+  background: #fefce8;
+  color: #854d0e;
+}
+.login-role-tab.active.owner-tab strong {
+  color: #713f12;
+}
+.quick-login-box {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.quick-login-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 @media (max-width: 1280px) {

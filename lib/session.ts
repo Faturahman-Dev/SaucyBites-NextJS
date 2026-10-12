@@ -1,7 +1,8 @@
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 export const COOKIE_NAME = 'saucybites_session';
 export const SESSION_AGE = 7 * 24 * 60 * 60;
-export type TeamUser = { userId: string; displayName: string };
+export type UserRole = 'owner' | 'member';
+export type TeamUser = { userId: string; displayName: string; role: UserRole };
 function signature(text: string, secret: string) {
   return createHmac('sha256', secret).update(text).digest('base64url');
 }
@@ -16,10 +17,12 @@ export function signSession(
   secret: string,
   now = Date.now(),
   passwordVersion = '',
+  role: UserRole = 'member',
 ) {
   const value = Buffer.from(
     JSON.stringify({
       name,
+      role,
       exp: now + SESSION_AGE * 1000,
       pv: createHash('sha256').update(passwordVersion).digest('hex'),
     }),
@@ -30,7 +33,7 @@ export function verifySession(
   token: string,
   secret: string,
   now = Date.now(),
-  passwordVersion = '',
+  passwordVersion: string | string[] | ((role: UserRole) => string) = '',
 ): TeamUser | null {
   try {
     const [value, sig, ...rest] = token.split('.');
@@ -45,11 +48,34 @@ export function verifySession(
       !data.name.trim() ||
       data.name.length > 80 ||
       !Number.isFinite(data.exp) ||
-      data.exp <= now ||
-      data.pv !== createHash('sha256').update(passwordVersion).digest('hex')
+      data.exp <= now
     )
       return null;
-    return { userId: data.name, displayName: data.name };
+
+    const role: UserRole = data.role === 'owner' ? 'owner' : 'member';
+
+    if (passwordVersion) {
+      if (typeof passwordVersion === 'function') {
+        const expectedPv = passwordVersion(role);
+        if (
+          expectedPv &&
+          data.pv !== createHash('sha256').update(expectedPv).digest('hex')
+        ) {
+          return null;
+        }
+      } else if (Array.isArray(passwordVersion)) {
+        const match = passwordVersion.some(
+          (pv) => createHash('sha256').update(pv).digest('hex') === data.pv,
+        );
+        if (!match) return null;
+      } else if (typeof passwordVersion === 'string') {
+        if (data.pv !== createHash('sha256').update(passwordVersion).digest('hex')) {
+          return null;
+        }
+      }
+    }
+
+    return { userId: data.name, displayName: data.name, role };
   } catch {
     return null;
   }

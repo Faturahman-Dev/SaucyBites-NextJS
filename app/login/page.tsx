@@ -1,16 +1,33 @@
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getTeamUser, loginConfigured } from '@/lib/auth';
-import { COOKIE_NAME, SESSION_AGE, passwordMatches, signSession } from '@/lib/session';
-import { Flame, LockKeyhole } from 'lucide-react';
+import {
+  getTeamUserFromCookie,
+  loginConfigured,
+  getOwnerPassword,
+  getMemberPassword,
+  getSessionSecret,
+} from '@/lib/auth';
+import {
+  COOKIE_NAME,
+  SESSION_AGE,
+  passwordMatches,
+  signSession,
+  type UserRole,
+} from '@/lib/session';
+import { Flame } from 'lucide-react';
+import LoginForm from './login-form';
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
 const limiter = globalThis as typeof globalThis & {
   saucyLoginTries?: Map<string, { count: number; until: number }>;
 };
+
 async function login(form: FormData) {
   'use server';
   if (!loginConfigured()) redirect('/login?error=config');
+
   const ip = (await headers()).get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
   const tries = (limiter.saucyLoginTries ??= new Map());
   for (const [key, entry] of tries) {
@@ -20,24 +37,38 @@ async function login(form: FormData) {
   if (entry.count >= 10) redirect('/login?error=rate');
   entry.count++;
   tries.set(ip, entry);
-  const name = String(form.get('name') || '').trim(),
-    password = String(form.get('password') || '');
+
+  const quickRole = String(form.get('quick_role') || '').trim();
+  const isDev = process.env.NODE_ENV === 'development';
+
+  let role: UserRole = form.get('role') === 'member' ? 'member' : 'owner';
+  let name = String(form.get('name') || '').trim();
+  let password = String(form.get('password') || '');
+
+  if (isDev && (quickRole === 'owner' || quickRole === 'member')) {
+    role = quickRole;
+    name = quickRole === 'owner' ? 'Owner' : 'Anggota Tim';
+    password = quickRole === 'owner' ? getOwnerPassword() : getMemberPassword();
+  }
+
+  const expectedPassword = role === 'owner' ? getOwnerPassword() : getMemberPassword();
+
   if (
     !name ||
     name.length > 80 ||
     password.length > 1000 ||
-    !passwordMatches(password, process.env.TEAM_ACCESS_PASSWORD!)
-  )
-    redirect('/login?error=invalid');
+    !expectedPassword ||
+    !passwordMatches(password, expectedPassword)
+  ) {
+    redirect(`/login?error=invalid&role=${role}`);
+  }
+
   tries.delete(ip);
-  (await cookies()).set(
+  const cookieStore = await cookies();
+  cookieStore.delete('saucybites_logged_out');
+  cookieStore.set(
     COOKIE_NAME,
-    signSession(
-      name,
-      process.env.SESSION_SECRET!,
-      Date.now(),
-      process.env.TEAM_ACCESS_PASSWORD!,
-    ),
+    signSession(name, getSessionSecret(), Date.now(), expectedPassword, role),
     {
       httpOnly: true,
       sameSite: 'lax',
@@ -48,18 +79,24 @@ async function login(form: FormData) {
   );
   redirect('/');
 }
+
 export default async function Login({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; role?: string }>;
 }) {
-  if (await getTeamUser()) redirect('/');
-  const { error } = await searchParams;
+  const cookieUser = await getTeamUserFromCookie();
+  if (cookieUser) redirect('/');
+
+  const { error, role: queryRole } = await searchParams;
+  const initialRole: UserRole = queryRole === 'member' ? 'member' : 'owner';
+
   const messages: Record<string, string> = {
-    config: 'Isi TEAM_ACCESS_PASSWORD dan SESSION_SECRET di konfigurasi server.',
-    rate: 'Terlalu banyak percobaan. Tunggu 10 menit lalu coba lagi.',
-    invalid: 'Nama atau password belum benar. Coba lagi.',
+    config: 'Konfigurasi password server belum lengkap.',
+    rate: 'Terlalu banyak percobaan login. Tunggu 10 menit lalu coba lagi.',
+    invalid: `Password atau nama untuk ${initialRole === 'owner' ? 'Owner (Pemilik)' : 'Anggota Tim'} belum benar. Coba lagi.`,
   };
+
   return (
     <main className="login-screen">
       <section className="login-card">
@@ -67,42 +104,26 @@ export default async function Login({
           <Flame size={31} />
           <b>SaucyBites.</b>
         </div>
-        <div className="eyebrow">RUANG TIM / FINANCIAL TRACKER</div>
-        <h1>Selamat datang, tim.</h1>
-        <p>Masuk untuk mencatat penjualan dan menjaga keuangan usaha tetap rapi.</p>
+        <div className="eyebrow">RUANG USAHA & PENCATATAN KEUANGAN</div>
+        <h1>Masuk ke Sistem</h1>
+        <p>Pilih peran Anda untuk mulai mengelola atau mencatat transaksi usaha.</p>
+
         {(!loginConfigured() || error) && (
           <div className="notice warning" role="alert">
             {messages[error || 'config'] || messages.invalid}
           </div>
         )}
-        <form action={login}>
-          <label className="field">
-            <span>Nama pencatat</span>
-            <input
-              name="name"
-              placeholder="Nama lu di tim"
-              autoComplete="name"
-              required
-              maxLength={80}
-            />
-          </label>
-          <label className="field">
-            <span>Password tim</span>
-            <input
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              maxLength={1000}
-            />
-          </label>
-          <button className="btn primary wide" disabled={!loginConfigured()}>
-            <LockKeyhole size={17} />
-            Masuk ke ruang tim
-          </button>
-        </form>
+
+        <LoginForm
+          initialRole={initialRole}
+          loginAction={login}
+          loginConfigured={loginConfigured()}
+          isDev={process.env.NODE_ENV === 'development'}
+        />
+
         <small>
-          Nama digunakan untuk riwayat aktivitas. Password disiapkan oleh pemilik server.
+          Peran <strong>Owner</strong> memiliki kendali penuh (resep, modal, bagi laba).
+          Peran <strong>Anggota Tim</strong> untuk operasional kasir &amp; belanja.
         </small>
       </section>
     </main>
