@@ -79,6 +79,15 @@ const defaults: Record<Kind, any> = {
   payout: { name: '', amount: '', type: 'Bagi laba', date: '', note: '' },
   member: { name: '', share: '' },
 };
+
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `item-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 const dateLabel = (date: string) =>
   new Date(date + 'T12:00:00').toLocaleDateString('id-ID', {
     day: 'numeric',
@@ -273,7 +282,7 @@ export default function TeamApp({ user }: { user: string }) {
       JSON.parse(JSON.stringify(row?.data ?? { ...defaults[kind], date: today() })),
     );
     setFormError('');
-    setModal({ kind, row, id: row?.id ?? crypto.randomUUID() });
+    setModal({ kind, row, id: row?.id ?? generateId() });
   }
   const set = (key: string, value: any) => setForm((p: any) => ({ ...p, [key]: value }));
   async function submit(e: React.FormEvent) {
