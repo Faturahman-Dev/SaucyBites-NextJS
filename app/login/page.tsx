@@ -54,11 +54,14 @@ async function login(form: FormData) {
 
   const expectedPassword = role === 'owner' ? getOwnerPassword() : getMemberPassword();
 
+  if (!expectedPassword) {
+    redirect(`/login?error=no_password&role=${role}`);
+  }
+
   if (
     !name ||
     name.length > 80 ||
     password.length > 1000 ||
-    !expectedPassword ||
     !passwordMatches(password, expectedPassword)
   ) {
     redirect(`/login?error=invalid&role=${role}`);
@@ -92,12 +95,12 @@ export default async function Login({
   const { error, role: queryRole } = await searchParams;
   const initialRole: UserRole = queryRole === 'member' ? 'member' : 'owner';
   const isConfigured = loginConfigured();
-  const configIssues = getConfigIssues();
 
   const messages: Record<string, string> = {
     config: 'Konfigurasi password server belum lengkap di Vercel.',
     rate: 'Terlalu banyak percobaan login. Tunggu 10 menit lalu coba lagi.',
-    invalid: `Password atau nama untuk ${initialRole === 'owner' ? 'Owner (Pemilik)' : 'Anggota Tim'} belum benar. Coba lagi.`,
+    no_password: `Password untuk ${initialRole === 'owner' ? 'Owner (Pemilik)' : 'Anggota Tim'} belum terpasang di server Vercel. Pastikan sudah mengisi OWNER_ACCESS_PASSWORD atau TEAM_ACCESS_PASSWORD di Vercel dan sudah di-Redeploy.`,
+    invalid: `Password atau nama untuk ${initialRole === 'owner' ? 'Owner (Pemilik)' : 'Anggota Tim'} belum sesuai. Pastikan tidak ada salah ketik huruf besar/kecil. (Catatan: Jika Anda baru saja mengubah password di Vercel, pastikan sudah klik "Redeploy" agar password baru tersebut aktif!).`,
   };
 
   return (

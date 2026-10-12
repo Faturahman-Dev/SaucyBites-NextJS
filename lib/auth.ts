@@ -3,19 +3,49 @@ import { redirect } from 'next/navigation';
 import { createHash } from 'node:crypto';
 import { COOKIE_NAME, verifySession, type TeamUser, type UserRole } from './session';
 
+function cleanEnv(val: string | undefined): string {
+  if (!val) return '';
+  return val.trim().replace(/^["']|["']$/g, '').trim();
+}
+
 export function getOwnerPassword(): string {
-  return (
+  const direct = cleanEnv(
     process.env.OWNER_ACCESS_PASSWORD ||
-    process.env.OWNER_PASSWORD ||
-    (process.env.NODE_ENV === 'development' ? 'owner123' : '')
+      process.env.OWNER_PASSWORD ||
+      process.env.PASSWORD_OWNER ||
+      process.env.ADMIN_PASSWORD,
   );
+  if (direct) return direct;
+
+  const team = cleanEnv(
+    process.env.TEAM_ACCESS_PASSWORD ||
+      process.env.MEMBER_ACCESS_PASSWORD ||
+      process.env.TEAM_PASSWORD ||
+      process.env.MEMBER_PASSWORD,
+  );
+  if (team) return team;
+
+  return process.env.NODE_ENV === 'development' ? 'owner123' : '';
 }
 
 export function getMemberPassword(): string {
-  return (
+  const direct = cleanEnv(
     process.env.TEAM_ACCESS_PASSWORD ||
-    (process.env.NODE_ENV === 'development' ? 'tim123' : '')
+      process.env.MEMBER_ACCESS_PASSWORD ||
+      process.env.TEAM_PASSWORD ||
+      process.env.MEMBER_PASSWORD,
   );
+  if (direct) return direct;
+
+  const owner = cleanEnv(
+    process.env.OWNER_ACCESS_PASSWORD ||
+      process.env.OWNER_PASSWORD ||
+      process.env.PASSWORD_OWNER ||
+      process.env.ADMIN_PASSWORD,
+  );
+  if (owner) return owner;
+
+  return process.env.NODE_ENV === 'development' ? 'tim123' : '';
 }
 
 export function getSessionSecret(): string {

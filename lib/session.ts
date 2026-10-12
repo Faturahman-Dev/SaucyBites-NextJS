@@ -6,10 +6,22 @@ export type TeamUser = { userId: string; displayName: string; role: UserRole };
 function signature(text: string, secret: string) {
   return createHmac('sha256', secret).update(text).digest('base64url');
 }
-export function passwordMatches(input: string, expected: string) {
-  return timingSafeEqual(
-    createHash('sha256').update(input).digest(),
-    createHash('sha256').update(expected).digest(),
+export function passwordMatches(input: string, expected: string): boolean {
+  if (!input || !expected) return false;
+  const hash = (s: string) => createHash('sha256').update(s).digest();
+  const safeCompare = (a: string, b: string) => {
+    const ha = hash(a);
+    const hb = hash(b);
+    return timingSafeEqual(ha, hb);
+  };
+
+  const cleanInput = input.trim().replace(/^["']|["']$/g, '').trim();
+  const cleanExpected = expected.trim().replace(/^["']|["']$/g, '').trim();
+
+  return (
+    safeCompare(input, expected) ||
+    safeCompare(input.trim(), expected.trim()) ||
+    safeCompare(cleanInput, cleanExpected)
   );
 }
 export function signSession(
