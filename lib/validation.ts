@@ -36,6 +36,13 @@ export const schemas = {
       )
       .optional()
       .default(''),
+    description: z.string().trim().max(300).optional().default(''),
+    category: z.string().trim().max(60).optional().default(''),
+    stockStatus: z
+      .enum(['available', 'limited', 'soldout'])
+      .optional()
+      .default('available'),
+    published: z.boolean().optional().default(true),
     lines: z.array(z.object({ ingredientId: z.string().min(1).max(100), qty })).max(100),
   }),
   sale: z.object({

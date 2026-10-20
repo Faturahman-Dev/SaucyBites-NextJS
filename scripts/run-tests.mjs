@@ -13,6 +13,9 @@ const files = [
   'lib/database.ts',
   'lib/session.ts',
   'lib/validation.ts',
+  'lib/catalog-types.ts',
+  'lib/catalog.ts',
+  'utils/whatsapp.ts',
 ];
 for (const filename of files) {
   const destination = path.join(out, filename.replace(/\.ts$/, '.js'));
@@ -21,15 +24,12 @@ for (const filename of files) {
     .transpileModule(fs.readFileSync(filename, 'utf8'), {
       compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
     })
-    .outputText.replace(
-      /(['"])@\/([^'"]+)\1/g,
-      (_, quote, importPath) =>
-        quote +
-        path
-          .relative(path.dirname(destination), path.join(out, importPath + '.js'))
-          .replaceAll('\\', '/') +
-        quote,
-    );
+    .outputText.replace(/(['"])@\/([^'"]+)\1/g, (_, quote, importPath) => {
+      const rel = path
+        .relative(path.dirname(destination), path.join(out, importPath + '.js'))
+        .replaceAll('\\', '/');
+      return quote + (rel.startsWith('.') ? rel : './' + rel) + quote;
+    });
   fs.writeFileSync(destination, compiled);
 }
 fs.writeFileSync(

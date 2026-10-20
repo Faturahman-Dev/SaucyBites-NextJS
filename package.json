@@ -11,7 +11,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
-    "format": "prettier --write app lib scripts tests *.json *.ts *.mjs",
+    "format": "prettier --write app context lib scripts tests utils *.json *.ts *.mjs",
     "db:init": "node --env-file-if-exists=.env.local scripts/db-init.mjs",
     "db:import": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/import-backup.ts",
     "test": "node scripts/run-tests.mjs"

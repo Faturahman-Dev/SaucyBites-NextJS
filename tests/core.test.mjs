@@ -11,6 +11,13 @@ import {
   passwordMatches,
   SESSION_AGE,
 } from '../.test-build/lib/session.js';
+import {
+  buildOrderMessage,
+  buildWhatsAppUrl,
+  normalizePhone,
+  formatRupiah,
+} from '../.test-build/utils/whatsapp.js';
+import { toCatalogProducts } from '../.test-build/lib/catalog.js';
 let checks = 0;
 const status = (r, n) => {
   assert.equal(r.status, n);
@@ -333,6 +340,33 @@ const again = spawnSync(
 assert.notEqual(again.status, 0);
 assert.ok(again.stderr.includes('database kosong'));
 checks += 2;
+assert.equal(normalizePhone('0812-3456-7890'), '6281234567890');
+assert.equal(formatRupiah(30000), 'Rp 30.000');
+const waMsg = buildOrderMessage(
+  'SaucyBites',
+  [
+    { name: 'Chicken Bites Teriyaki', qty: 2, price: 15000 },
+    { name: 'Milky Chocolate', qty: 1, price: 10000 },
+  ],
+  {
+    name: 'Budi',
+    phone: '081234567890',
+    address: 'Jl. Merdeka No. 10',
+    note: 'Saus dipisah',
+  },
+);
+assert.ok(waMsg.includes('Halo SaucyBites, saya ingin memesan:'));
+assert.ok(waMsg.includes('- Chicken Bites Teriyaki (x2) - Rp 30.000'));
+assert.ok(waMsg.includes('Total Belanja: Rp 40.000'));
+assert.ok(waMsg.includes('*Data Pemesan:*'));
+assert.ok(
+  buildWhatsAppUrl('081234567890', waMsg).startsWith('https://wa.me/6281234567890?text='),
+);
+const catItems = toCatalogProducts(exported.rows);
+assert.equal(catItems.length, 1);
+assert.equal(catItems[0].id, 'teriyaki');
+assert.equal(catItems[0].price, 15000);
+checks += 10;
 db.close();
 console.log(
   JSON.stringify({

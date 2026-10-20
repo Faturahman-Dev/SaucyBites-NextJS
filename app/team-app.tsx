@@ -46,7 +46,7 @@ const sections = [
   { id: 'sales', name: 'Kasir & penjualan', icon: ShoppingBag },
   { id: 'ingredients', name: 'Bahan & kemasan', icon: Package },
   { id: 'recipes', name: 'Menu & resep', icon: ChefHat },
-  { id: 'money', name: 'Arus uang', icon: Wallet },
+  { id: 'money', name: 'Cash Flow', icon: Wallet },
   { id: 'bep', name: 'Target & BEP', icon: Target },
   { id: 'team', name: 'Tim & bagi laba', icon: Users },
   { id: 'guide', name: 'Panduan', icon: BookOpen },
@@ -64,7 +64,17 @@ const labels: Record<Kind, string> = {
 };
 const defaults: Record<Kind, any> = {
   ingredient: { name: '', price: '', packQty: '', unit: 'g' },
-  product: { name: '', price: '', target: 0, image: '', lines: [] },
+  product: {
+    name: '',
+    price: '',
+    target: 0,
+    image: '',
+    description: '',
+    category: 'Makanan',
+    stockStatus: 'available',
+    published: true,
+    lines: [],
+  },
   sale: {
     productId: 'teriyaki',
     qty: 1,
@@ -635,6 +645,16 @@ export default function TeamApp({
             >
               <RefreshCw size={18} className={loading ? 'spin' : ''} />
             </button>
+            <a
+              className="btn subtle"
+              href="/catalog"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Buka halaman katalog publik"
+            >
+              <ShoppingBag size={16} />
+              Katalog
+            </a>
             <button className="btn subtle backup" disabled={!loaded} onClick={backup}>
               <Download size={16} />
               Cadangan
@@ -1216,7 +1236,7 @@ export default function TeamApp({
               )}
               <div className="panel-footnote">
                 Mengisi harga bahan tidak mencatat pengeluaran kas. Catat pembeliannya
-                juga di Arus uang → Pembelian bahan.
+                juga di Cash Flow → Pembelian bahan.
               </div>
             </section>
           )}
@@ -1335,7 +1355,7 @@ export default function TeamApp({
                 <p>
                   Takaran dihitung per satu porsi siap jual. Untuk bahan yang dipakai satu
                   batch, bagi jumlahnya dengan porsi layak jual yang dihasilkan. HPP belum
-                  mencakup biaya tetap; masukkan biaya tersebut di Arus uang.
+                  mencakup biaya tetap; masukkan biaya tersebut di Cash Flow.
                 </p>
               </div>
             </>
@@ -1817,7 +1837,7 @@ export default function TeamApp({
                   {
                     n: '03',
                     title: 'Catat pergerakan dana',
-                    text: 'Masukkan modal awal, pembelian bahan, biaya event, dan peralatan di Arus uang. Jangan catat pembayaran yang sama dua kali.',
+                    text: 'Masukkan modal awal, pembelian bahan, biaya event, dan peralatan di Cash Flow. Jangan catat pembayaran yang sama dua kali.',
                     tab: 'money',
                   },
                   {
@@ -1991,7 +2011,7 @@ export default function TeamApp({
                 </div>
                 <p className="helper">
                   Konversi kg menjadi gram dan liter menjadi ml sebelum mengisi. Catat
-                  pembayaran pembelian secara terpisah di Arus uang.
+                  pembayaran pembelian secara terpisah di Cash Flow.
                 </p>
               </>
             )}
@@ -2101,6 +2121,39 @@ export default function TeamApp({
                     step="1"
                   />
                 </div>
+                <div className="form-grid">
+                  <Field
+                    label="Kategori katalog"
+                    value={form.category ?? 'Makanan'}
+                    onChange={(v) => set('category', v)}
+                    required={false}
+                    hint="Contoh: Makanan, Minuman, Paket"
+                  />
+                  <Select
+                    label="Status stok katalog"
+                    value={form.stockStatus || 'available'}
+                    onChange={(v) => set('stockStatus', v)}
+                  >
+                    <option value="available">Tersedia</option>
+                    <option value="limited">Stok terbatas</option>
+                    <option value="soldout">Habis</option>
+                  </Select>
+                </div>
+                <Field
+                  label="Deskripsi singkat katalog (opsional)"
+                  value={form.description ?? ''}
+                  onChange={(v) => set('description', v)}
+                  required={false}
+                  hint="Ditampilkan pada kartu menu di halaman katalog publik (/catalog)."
+                />
+                <Select
+                  label="Tampilkan di katalog publik (/catalog)"
+                  value={form.published === false ? 'false' : 'true'}
+                  onChange={(v) => set('published', v === 'true')}
+                >
+                  <option value="true">Tampilkan di katalog publik</option>
+                  <option value="false">Sembunyikan dari katalog publik</option>
+                </Select>
                 <div className="recipe-editor-heading">
                   <strong>Takaran satu porsi</strong>
                   <button
