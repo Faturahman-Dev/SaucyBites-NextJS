@@ -28,16 +28,14 @@ function validate(c: CustomerInfo): Errors {
   const errors: Errors = {};
   if (c.name.trim().length < 2) errors.name = 'Isi nama pemesan.';
   if (!isValidIndonesianPhone(c.phone))
-    errors.phone = 'Nomor WhatsApp tidak valid. Contoh: 081234567890';
+    errors.phone = 'Nomor WhatsApp belum valid (gunakan awalan 08 atau 628).';
   if (c.address.trim().length < 5) errors.address = 'Isi alamat pengiriman lengkap.';
   return errors;
 }
 
 const inputClass = (error?: string) =>
-  `w-full rounded-xl border bg-white px-3.5 py-2.5 text-base text-stone-900 outline-none transition placeholder:text-stone-400 focus:ring-4 sm:text-sm ${
-    error
-      ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
-      : 'border-stone-200 focus:border-forest focus:ring-forest/10'
+  `w-full rounded-[9px] border bg-[#fafbf7] px-3.5 py-2.5 text-base text-[#222b25] transition placeholder:text-[#687a5c] focus-visible:outline-3 focus-visible:outline-[#ebac64] focus-visible:outline-offset-2 sm:text-sm ${
+    error ? 'border-[#c64335] bg-[#fff8f6]' : 'border-[#d6ddd0]'
   }`;
 
 export default function CartDrawer({
@@ -55,7 +53,6 @@ export default function CartDrawer({
   const [sentUrl, setSentUrl] = useState('');
   const closeRef = useRef<HTMLButtonElement>(null);
 
-  // Remember the customer's contact details on this device (not the note).
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(CUSTOMER_KEY) || 'null');
@@ -69,7 +66,6 @@ export default function CartDrawer({
     } catch {}
   }, []);
 
-  // Lock page scroll, close with Escape, and move focus into the drawer.
   useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
@@ -113,7 +109,6 @@ export default function CartDrawer({
         }),
       );
     } catch {}
-    // Opened synchronously inside the submit handler so mobile browsers don't block it.
     const win = window.open(url, '_blank');
     if (win) win.opener = null;
     else window.location.href = url;
@@ -137,27 +132,27 @@ export default function CartDrawer({
         tabIndex={-1}
         aria-label="Tutup keranjang"
         onClick={onClose}
-        className={`absolute inset-0 bg-stone-950/50 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-[#1b2d23]/65 transition-opacity duration-200 ${
           open ? 'opacity-100' : 'opacity-0'
         }`}
       />
       <aside
         role="dialog"
         aria-modal="true"
-        aria-label="Keranjang belanja"
-        className={`absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col rounded-t-3xl bg-paper shadow-2xl transition-transform duration-300 ease-out sm:inset-y-0 sm:left-auto sm:right-0 sm:max-h-none sm:w-[440px] sm:rounded-none sm:rounded-l-3xl ${
+        aria-label="Formulir pemesanan dan keranjang"
+        className={`absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col rounded-t-2xl border-t border-[#e7e9e2] bg-[#f7f7f2] shadow-2xl transition-transform duration-200 ease-out sm:inset-y-0 sm:left-auto sm:right-0 sm:max-h-none sm:w-[440px] sm:rounded-none sm:rounded-l-2xl sm:border-l sm:border-t-0 ${
           open
             ? 'translate-y-0 sm:translate-x-0'
             : 'translate-y-full sm:translate-x-full sm:translate-y-0'
         }`}
       >
-        <header className="flex items-center justify-between gap-3 border-b border-stone-200 px-5 py-4">
+        <header className="flex items-center justify-between gap-3 border-b border-[#e7e9e2] bg-white px-5 py-4">
           <div>
-            <h2 className="text-lg font-extrabold tracking-tight text-stone-900">
-              Keranjang
+            <h2 className="text-lg font-extrabold tracking-tight text-[#222b25]">
+              Detail Pesanan
             </h2>
-            <p className="text-xs text-stone-500">
-              {count > 0 ? `${count} porsi dipilih` : 'Belum ada menu dipilih'}
+            <p className="text-xs text-[#52614f]">
+              {count > 0 ? `${count} porsi siap dipesan` : 'Belum ada menu dipilih'}
             </p>
           </div>
           <button
@@ -165,7 +160,7 @@ export default function CartDrawer({
             type="button"
             onClick={onClose}
             aria-label="Tutup keranjang"
-            className="grid h-10 w-10 place-items-center rounded-full text-stone-500 transition hover:bg-stone-200/60 hover:text-stone-900"
+            className="grid h-11 w-11 place-items-center rounded-[9px] text-[#52614f] transition hover:bg-[#f0f2eb] hover:text-[#222b25]"
           >
             <X className="h-5 w-5" />
           </button>
@@ -173,104 +168,112 @@ export default function CartDrawer({
 
         {sentUrl ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-10 text-center">
-            <div className="grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-600">
-              <CheckCircle2 className="h-8 w-8" />
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#edf4e9] text-[#275d46]">
+              <CheckCircle2 className="h-7 w-7" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-stone-900">
-                Pesanan siap dikirim!
+              <h3 className="text-lg font-extrabold text-[#222b25]">
+                Format pesanan sudah siap di WhatsApp
               </h3>
-              <p className="mt-1 text-sm leading-relaxed text-stone-500">
-                WhatsApp sudah dibuka dengan pesan pesananmu. Tekan <b>kirim</b> di
-                WhatsApp agar pesanan diterima {store.name}.
+              <p className="mt-1.5 text-sm leading-relaxed text-[#52614f]">
+                Jendela WhatsApp telah dibuka. Tekan tombol kirim pada aplikasi WhatsApp
+                agar pesanan diterima oleh {store.name}.
               </p>
             </div>
-            <div className="flex w-full flex-col gap-2">
+            <div className="flex w-full flex-col gap-2.5">
               <a
                 href={sentUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[9px] border border-[#d6ddd0] bg-white px-4 py-2.5 text-sm font-bold text-[#222b25] transition hover:bg-[#f7f8f3]"
               >
                 <MessageCircle className="h-4 w-4" />
-                Buka WhatsApp lagi
+                Buka ulang tautan WhatsApp
               </a>
               <button
                 type="button"
                 onClick={finish}
-                className="rounded-xl bg-forest px-4 py-3 text-sm font-bold text-white transition hover:bg-forest-soft"
+                className="min-h-11 rounded-[9px] bg-[#21362c] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#2d4636]"
               >
-                Selesai & kosongkan keranjang
+                Selesai dan kosongkan keranjang
               </button>
             </div>
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-16 text-center">
-            <div className="grid h-16 w-16 place-items-center rounded-full bg-cream text-brand">
-              <ShoppingBag className="h-7 w-7" />
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#fae5c4] text-[#7a4b12]">
+              <ShoppingBag className="h-6 w-6" />
             </div>
-            <h3 className="text-base font-bold text-stone-900">Keranjang masih kosong</h3>
-            <p className="text-sm text-stone-500">
-              Pilih menu favoritmu lalu tekan tombol <b>Tambah</b>.
+            <h3 className="text-base font-bold text-[#222b25]">Keranjang masih kosong</h3>
+            <p className="text-sm text-[#52614f]">
+              Pilih menu pada daftar katalog lalu tekan tombol <b>Tambah</b> untuk mulai
+              menyusun pesanan.
             </p>
             <button
               type="button"
               onClick={onClose}
-              className="mt-2 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-dark"
+              className="mt-2 min-h-11 rounded-[9px] bg-brand px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-dark"
             >
-              Lihat menu
+              Kembali ke daftar menu
             </button>
           </div>
         ) : (
           <form onSubmit={checkout} noValidate className="flex min-h-0 flex-1 flex-col">
             <div className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 py-4">
-              <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+              <ul className="divide-y divide-[#e7e9e2] rounded-2xl border border-[#e7e9e2] bg-white">
                 {items.map((item) => (
-                  <li key={item.id} className="flex gap-3 p-3">
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-cream">
-                      {item.image && (
+                  <li key={item.id} className="flex gap-3 p-3.5">
+                    {item.image ? (
+                      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-[#e7e9e2] bg-[#f6f7f2]">
                         <img
                           src={item.image}
                           alt=""
                           className="h-full w-full object-cover"
                         />
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#fae5c4] text-base font-extrabold text-[#7a4b12]"
+                      >
+                        {item.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                     <div className="flex min-w-0 flex-1 flex-col">
                       <div className="flex items-start justify-between gap-2">
-                        <span className="text-sm font-bold leading-snug text-stone-900">
+                        <span className="text-sm font-bold leading-snug text-[#222b25]">
                           {item.name}
                         </span>
                         <button
                           type="button"
                           onClick={() => remove(item.id)}
-                          aria-label={`Hapus ${item.name}`}
-                          className="-mr-1 -mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-stone-400 transition hover:bg-red-50 hover:text-red-600"
+                          aria-label={`Hapus ${item.name} dari keranjang`}
+                          className="-mr-2 -mt-2 grid h-11 w-11 shrink-0 place-items-center rounded-[9px] text-[#52614f] transition hover:bg-[#fce9e4] hover:text-[#b72c20]"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                       {item.unavailable ? (
-                        <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-red-600">
+                        <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#b72c20]">
                           <AlertCircle className="h-3.5 w-3.5" />
-                          Stok habis — hapus untuk lanjut
+                          Stok habis: hapus item ini untuk melanjutkan
                         </span>
                       ) : (
-                        <span className="text-xs text-stone-500">
+                        <span className="text-xs text-[#52614f]">
                           {formatRupiah(item.price)} / porsi
                         </span>
                       )}
-                      <div className="mt-auto flex items-center justify-between pt-2">
-                        <div className="flex items-center rounded-full border border-stone-200">
+                      <div className="mt-auto flex items-center justify-between pt-2.5">
+                        <div className="inline-flex items-center rounded-[9px] border border-[#d6ddd0] bg-[#fafbf7]">
                           <button
                             type="button"
                             aria-label={`Kurangi ${item.name}`}
                             onClick={() => setQty(item.id, item.qty - 1)}
-                            className="grid h-8 w-8 place-items-center rounded-full text-stone-600 transition hover:bg-stone-100"
+                            className="grid h-11 w-11 place-items-center rounded-l-[9px] text-[#222b25] transition hover:bg-[#eef1e7]"
                           >
-                            <Minus className="h-3.5 w-3.5" />
+                            <Minus className="h-4 w-4" />
                           </button>
-                          <span className="min-w-7 text-center text-sm font-bold tabular-nums">
+                          <span className="min-w-8 text-center text-sm font-bold tabular-nums text-[#222b25]">
                             {item.qty}
                           </span>
                           <button
@@ -278,13 +281,13 @@ export default function CartDrawer({
                             aria-label={`Tambah ${item.name}`}
                             disabled={item.unavailable || item.qty >= MAX_QTY}
                             onClick={() => add(item.id)}
-                            className="grid h-8 w-8 place-items-center rounded-full text-stone-600 transition hover:bg-stone-100 disabled:opacity-40"
+                            className="grid h-11 w-11 place-items-center rounded-r-[9px] text-[#222b25] transition hover:bg-[#eef1e7] disabled:opacity-40"
                           >
-                            <Plus className="h-3.5 w-3.5" />
+                            <Plus className="h-4 w-4" />
                           </button>
                         </div>
-                        <strong className="text-sm font-extrabold tabular-nums text-stone-900">
-                          {item.unavailable ? '—' : formatRupiah(item.subtotal)}
+                        <strong className="text-sm font-extrabold tabular-nums text-[#21362c]">
+                          {item.unavailable ? 'Habis' : formatRupiah(item.subtotal)}
                         </strong>
                       </div>
                     </div>
@@ -292,21 +295,21 @@ export default function CartDrawer({
                 ))}
               </ul>
 
-              <fieldset className="space-y-3">
-                <legend className="mb-1 text-sm font-extrabold text-stone-900">
-                  Data pemesan
+              <fieldset className="space-y-3 rounded-2xl border border-[#e7e9e2] bg-white p-4">
+                <legend className="px-1 text-sm font-extrabold text-[#222b25]">
+                  Data Pemesan
                 </legend>
-                <Field label="Nama" error={errors.name}>
+                <Field label="Nama Pemesan" error={errors.name}>
                   <input
                     value={customer.name}
                     onChange={(e) => update('name', e.target.value)}
                     autoComplete="name"
                     maxLength={60}
-                    placeholder="Nama lengkap"
+                    placeholder="Masukkan nama penerima"
                     className={inputClass(errors.name)}
                   />
                 </Field>
-                <Field label="Nomor WhatsApp" error={errors.phone}>
+                <Field label="Nomor WhatsApp Aktif" error={errors.phone}>
                   <input
                     value={customer.phone}
                     onChange={(e) => update('phone', e.target.value)}
@@ -314,56 +317,59 @@ export default function CartDrawer({
                     inputMode="tel"
                     autoComplete="tel"
                     maxLength={20}
-                    placeholder="081234567890"
+                    placeholder="0812xxxxxxxx"
                     className={inputClass(errors.phone)}
                   />
                 </Field>
-                <Field label="Alamat pengiriman" error={errors.address}>
+                <Field label="Alamat Pengiriman" error={errors.address}>
                   <textarea
                     value={customer.address}
                     onChange={(e) => update('address', e.target.value)}
                     autoComplete="street-address"
                     rows={2}
                     maxLength={300}
-                    placeholder="Jalan, nomor rumah, patokan, kecamatan"
+                    placeholder="Jalan, nomor rumah, patokan, atau lokasi ambil"
                     className={inputClass(errors.address) + ' resize-none'}
                   />
                 </Field>
-                <Field label="Catatan tambahan (opsional)">
+                <Field label="Catatan Tambahan (Opsional)">
                   <textarea
                     value={customer.note}
                     onChange={(e) => update('note', e.target.value)}
                     rows={2}
                     maxLength={200}
-                    placeholder="Contoh: saus dipisah, tanpa wijen"
+                    placeholder="Opsional: permintaan saus, jam ambil, dll."
                     className={inputClass() + ' resize-none'}
                   />
                 </Field>
               </fieldset>
             </div>
 
-            <footer className="space-y-3 border-t border-stone-200 bg-white px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+            <footer className="space-y-3 border-t border-[#e7e9e2] bg-white px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
               <div className="flex items-baseline justify-between">
-                <span className="text-sm text-stone-500">Total belanja</span>
-                <strong className="text-xl font-extrabold tracking-tight text-forest">
+                <span className="text-sm font-semibold text-[#52614f]">
+                  Total Belanja
+                </span>
+                <strong className="text-xl font-extrabold tracking-tight tabular-nums text-[#21362c]">
                   {formatRupiah(total)}
                 </strong>
               </div>
               {!store.whatsappNumber && (
-                <p className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
+                <p className="flex items-start gap-2 rounded-[9px] border border-[#f1e0c7] bg-[#fff4e4] p-3 text-xs leading-relaxed text-[#7a4f13]">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                  Nomor WhatsApp toko belum diatur. Hubungi admin {store.name}.
+                  Nomor WhatsApp toko belum dikonfigurasi pada server. Isi variabel
+                  STORE_WHATSAPP_NUMBER untuk mengaktifkan pengiriman pesanan.
                 </p>
               )}
               {hasUnavailable && (
-                <p className="text-xs font-semibold text-red-600">
-                  Hapus menu yang stoknya habis untuk melanjutkan.
+                <p className="text-xs font-semibold text-[#b72c20]">
+                  Hapus menu yang stoknya habis untuk melanjutkan pemesanan.
                 </p>
               )}
               <button
                 type="submit"
                 disabled={!canCheckout}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-[#1ebe5a] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[9px] bg-brand px-4 py-3 text-sm font-extrabold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <MessageCircle className="h-5 w-5" />
                 Kirim Pesanan via WhatsApp
@@ -387,10 +393,10 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold text-stone-600">{label}</span>
+      <span className="mb-1.5 block text-xs font-bold text-[#465c3a]">{label}</span>
       {children}
       {error && (
-        <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>
+        <span className="mt-1 block text-xs font-semibold text-[#b72c20]">{error}</span>
       )}
     </label>
   );

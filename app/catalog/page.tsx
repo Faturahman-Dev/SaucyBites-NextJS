@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 export async function generateMetadata(): Promise<Metadata> {
   const store = getStoreConfig();
   return {
-    title: `Katalog ${store.name} — Pesan via WhatsApp`,
+    title: `Katalog ${store.name}: Pesan via WhatsApp`,
     description: store.tagline,
   };
 }
