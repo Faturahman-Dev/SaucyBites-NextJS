@@ -7,7 +7,7 @@ const filename = process.argv[2];
 if (!filename)
   throw new Error('Gunakan: npm run db:import -- /path/SaucyBites-cadangan.json');
 if (statSync(filename).size > 50 * 1024 * 1024)
-  throw new Error('Cadangan terlalu besar (maksimal 50 MB).');
+  throw new Error('File terlalu besar (maksimal 50 MB).');
 const kinds = z.enum([
   'ingredient',
   'product',

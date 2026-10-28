@@ -28,8 +28,10 @@ import {
   LogOut,
   Receipt,
   Clock,
-  Sparkles,
+  TrendingUp,
   ImagePlus,
+  ShieldCheck,
+  Lock,
 } from 'lucide-react';
 import {
   products,
@@ -41,16 +43,27 @@ import {
   type Kind,
   type Row,
 } from './model';
-const sections = [
-  { id: 'overview', name: 'Ringkasan', icon: LayoutDashboard },
-  { id: 'sales', name: 'Kasir & penjualan', icon: ShoppingBag },
-  { id: 'ingredients', name: 'Bahan & kemasan', icon: Package },
-  { id: 'recipes', name: 'Menu & resep', icon: ChefHat },
-  { id: 'money', name: 'Cash Flow', icon: Wallet },
-  { id: 'bep', name: 'Target & BEP', icon: Target },
-  { id: 'team', name: 'Tim & bagi laba', icon: Users },
-  { id: 'guide', name: 'Panduan', icon: BookOpen },
+const navGroups = [
+  {
+    label: 'Operasional & Menu',
+    items: [
+      { id: 'overview', name: 'Ringkasan', icon: LayoutDashboard },
+      { id: 'sales', name: 'Kasir & penjualan', icon: ShoppingBag },
+      { id: 'recipes', name: 'Menu & resep', icon: ChefHat },
+      { id: 'ingredients', name: 'Bahan & kemasan', icon: Package },
+    ],
+  },
+  {
+    label: 'Keuangan & Tim',
+    items: [
+      { id: 'money', name: 'Cash Flow', icon: Wallet },
+      { id: 'bep', name: 'Target & BEP', icon: Target },
+      { id: 'team', name: 'Tim & bagi laba', icon: Users },
+      { id: 'guide', name: 'Panduan kerja', icon: BookOpen },
+    ],
+  },
 ];
+const sections = navGroups.flatMap((g) => g.items);
 const labels: Record<Kind, string> = {
   ingredient: 'Bahan',
   product: 'Menu',
@@ -321,6 +334,15 @@ export default function TeamApp({
     if (confirm && !confirmRef.current?.open) confirmRef.current?.showModal();
     if (!confirm) confirmRef.current?.close();
   }, [confirm]);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 961px)');
+    const handleViewport = (e: MediaQueryListEvent | MediaQueryList) => {
+      if (e.matches) setMobile(false);
+    };
+    handleViewport(mq);
+    mq.addEventListener('change', handleViewport);
+    return () => mq.removeEventListener('change', handleViewport);
+  }, []);
   const ps = products(rows),
     ingredients = rows.filter((r) => r.kind === 'ingredient'),
     f = finance(rows),
@@ -549,52 +571,85 @@ export default function TeamApp({
   const maxDay = Math.max(1, ...sumsByDay.map((d) => d.total));
   return (
     <div className="app-shell">
-      <aside className={'sidebar ' + (mobile ? 'open' : '')}>
-        <a className="brand" href="/" aria-label="SaucyBites beranda">
-          <span className="brand-icon">
-            <Flame size={26} />
-          </span>
-          <span>
-            Saucy<span className="brand-bites">Bites.</span>
-            <small>RUANG TIM</small>
-          </span>
-        </a>
-        <div className="sidebar-label">ENTREPRENEURSHIP FAIR</div>
-        <nav>
-          {sections.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => choose(s.id)}
-              className={section === s.id ? 'active' : ''}
-            >
-              <s.icon size={19} />
-              {s.name}
-              {section === s.id && <span className="nav-dot" />}
-            </button>
+      <aside className={'sidebar ' + (mobile ? 'open' : '')} aria-label="Navigasi ruang tim">
+        <div className="sidebar-header">
+          <a className="brand" href="/" aria-label="SaucyBites beranda">
+            <span className="brand-icon">
+              <Flame size={22} />
+            </span>
+            <span className="brand-text">
+              <span className="brand-title">
+                Saucy<span className="brand-bites">Bites.</span>
+              </span>
+              <small>RUANG OPERASIONAL</small>
+            </span>
+          </a>
+          <button
+            type="button"
+            className="icon-btn mobile-close"
+            aria-label="Tutup menu navigasi"
+            onClick={() => setMobile(false)}
+          >
+            <X size={19} />
+          </button>
+        </div>
+
+        <nav className="sidebar-nav">
+          {navGroups.map((group) => (
+            <div key={group.label} className="nav-group">
+              <div className="sidebar-label">{group.label}</div>
+              <div className="nav-list">
+                {group.items.map((s) => {
+                  const active = section === s.id;
+                  return (
+                    <button
+                      type="button"
+                      key={s.id}
+                      onClick={() => choose(s.id)}
+                      className={active ? 'active' : ''}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      <s.icon size={18} />
+                      <span>{s.name}</span>
+                      {active && <span className="nav-dot" aria-hidden="true" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           ))}
         </nav>
+
         <div className="side-bottom">
           <div className="side-note">
-            <Cloud size={20} />
-            <strong>Satu tim. Satu catatan.</strong>
-            <p>Data bersama, diperbarui otomatis setiap 15 detik.</p>
+            <div className="side-note-head">
+              <Cloud size={16} />
+              <strong>Sinkronisasi otomatis</strong>
+            </div>
+            <p>Catatan bersama diperbarui tiap 15 detik.</p>
           </div>
           <div className="profile">
             <span className={`avatar ${role === 'owner' ? 'owner' : ''}`}>
               {user.charAt(0).toUpperCase()}
             </span>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div className="profile-meta">
+              <div className="profile-top">
                 <strong>{user.split('@')[0]}</strong>
                 <span className={`role-badge ${role}`}>
-                  {role === 'owner' ? '👑 Owner' : '👥 Anggota'}
+                  {role === 'owner' ? <ShieldCheck size={11} /> : <Users size={11} />}
+                  {role === 'owner' ? 'Owner' : 'Anggota'}
                 </span>
               </div>
               <small>
-                {role === 'owner' ? 'Pemilik SaucyBites' : 'Anggota tim SaucyBites'}
+                {role === 'owner' ? 'Akses penuh pemilik' : 'Kasir & pencatatan'}
               </small>
             </div>
-            <a href="/logout" title="Keluar / Ganti Akun" aria-label="Keluar">
+            <a
+              className="logout-btn"
+              href="/logout"
+              title="Keluar / Ganti Akun"
+              aria-label="Keluar dari akun"
+            >
               <LogOut size={17} />
             </a>
           </div>
@@ -602,6 +657,7 @@ export default function TeamApp({
       </aside>
       {mobile && (
         <button
+          type="button"
           className="nav-scrim"
           aria-label="Tutup menu"
           onClick={() => setMobile(false)}
@@ -611,18 +667,18 @@ export default function TeamApp({
         <header className="topbar">
           <div className="breadcrumb">
             <button
-              className="icon-btn mobile-menu"
-              aria-label="Buka menu"
+              type="button"
+              className="mobile-menu"
+              aria-label="Buka menu navigasi"
+              aria-expanded={mobile}
               onClick={() => setMobile(!mobile)}
             >
-              <Menu size={23} />
+              <Menu size={18} />
+              <span>Menu</span>
             </button>
-            <span>Ruang SaucyBites</span>
-            <ChevronRight size={14} />
+            <span className="breadcrumb-root">Ruang SaucyBites</span>
+            <ChevronRight size={14} className="breadcrumb-sep" />
             <strong>{sections.find((s) => s.id === section)?.name}</strong>
-            <span className={`role-badge ${role}`} style={{ marginLeft: '8px' }}>
-              {role === 'owner' ? '👑 Owner' : '👥 Anggota'}
-            </span>
           </div>
           <div className="top-actions">
             <span className={'sync-status ' + (error ? 'offline' : '')}>
@@ -638,12 +694,14 @@ export default function TeamApp({
               </small>
             </span>
             <button
+              type="button"
               className="icon-btn"
               aria-label="Muat ulang data"
               onClick={() => refresh(true)}
               disabled={loading}
+              title="Muat ulang data"
             >
-              <RefreshCw size={18} className={loading ? 'spin' : ''} />
+              <RefreshCw size={17} className={loading ? 'spin' : ''} />
             </button>
             <a
               className="btn subtle"
@@ -655,7 +713,12 @@ export default function TeamApp({
               <ShoppingBag size={16} />
               Katalog
             </a>
-            <button className="btn subtle backup" disabled={!loaded} onClick={backup}>
+            <button
+              type="button"
+              className="btn subtle backup"
+              disabled={!loaded}
+              onClick={backup}
+            >
               <Download size={16} />
               Cadangan
             </button>
@@ -677,8 +740,8 @@ export default function TeamApp({
           <div className="page-heading">
             <div>
               <div className="eyebrow">
-                SAUCYBITES /{' '}
-                {section === 'overview' ? 'BUSINESS OVERVIEW' : 'TEAM WORKSPACE'}
+                SAUCYBITES ·{' '}
+                {section === 'overview' ? 'RINGKASAN USAHA' : 'OPERASIONAL TIM'}
               </div>
               <h1>
                 {
@@ -745,26 +808,26 @@ export default function TeamApp({
               <div className="stats">
                 <Stat
                   label="Omzet penjualan"
-                  value={loaded ? rupiah(f.revenue) : '—'}
+                  value={loaded ? rupiah(f.revenue) : 'Memuat...'}
                   detail={f.units + ' porsi terjual · seluruh catatan'}
                   icon={ArrowUpRight}
                 />
                 <Stat
                   label="Estimasi laba bersih"
-                  value={loaded ? rupiah(f.profit) : '—'}
+                  value={loaded ? rupiah(f.profit) : 'Memuat...'}
                   detail="Setelah HPP & biaya event"
-                  icon={Sparkles}
+                  icon={TrendingUp}
                   tone="highlight"
                 />
                 <Stat
                   label="Saldo dana usaha"
-                  value={loaded ? rupiah(f.cash) : '—'}
+                  value={loaded ? rupiah(f.cash) : 'Memuat...'}
                   detail="Gabungan dana tunai & QRIS"
                   icon={Wallet}
                 />
                 <Stat
                   label="Biaya operasional"
-                  value={loaded ? rupiah(f.expenses + f.equipmentCost) : '—'}
+                  value={loaded ? rupiah(f.expenses + f.equipmentCost) : 'Memuat...'}
                   detail="Operasional + alokasi peralatan"
                   icon={ArrowDownRight}
                 />
@@ -819,14 +882,14 @@ export default function TeamApp({
                       <h2>Penjualan 7 hari terakhir</h2>
                       <p>Omzet aktual dalam rupiah</p>
                     </div>
-                    <span className="tag soft">LIVE DATA</span>
+                    <span className="tag soft">DATA AKTUAL</span>
                   </div>
                   {sales.length ? (
                     <div className="bar-chart">
                       {sumsByDay.map((d) => (
                         <div key={d.date} className="bar-column">
                           <span className="bar-value">
-                            {d.total ? rupiah(d.total) : '—'}
+                            {d.total ? rupiah(d.total) : '-'}
                           </span>
                           <div className="bar-track">
                             <div
@@ -898,7 +961,9 @@ export default function TeamApp({
                             </small>
                           </div>
                           <div className="right">
-                            <strong>{p.data.price ? rupiah(p.data.price) : '—'}</strong>
+                            <strong>
+                              {p.data.price ? rupiah(p.data.price) : 'Belum diatur'}
+                            </strong>
                             <small
                               className={
                                 c.ready && p.data.price - c.cost > 0 ? 'green' : ''
@@ -1304,11 +1369,13 @@ export default function TeamApp({
                       <div className="recipe-numbers">
                         <div>
                           <small>HPP / porsi</small>
-                          <strong>{c.ready ? rupiah(c.cost) : '—'}</strong>
+                          <strong>{c.ready ? rupiah(c.cost) : 'Belum diatur'}</strong>
                         </div>
                         <div>
                           <small>Harga jual</small>
-                          <strong>{p.data.price ? rupiah(p.data.price) : '—'}</strong>
+                          <strong>
+                            {p.data.price ? rupiah(p.data.price) : 'Belum diatur'}
+                          </strong>
                         </div>
                       </div>
                       <div className="recipe-lines">
@@ -1333,7 +1400,7 @@ export default function TeamApp({
                       <div className={'margin-line ' + (margin < 0 ? 'red' : '')}>
                         <span>Kontribusi / porsi</span>
                         <strong>
-                          {c.ready && p.data.price > 0 ? rupiah(margin) : '—'}
+                          {c.ready && p.data.price > 0 ? rupiah(margin) : 'Belum siap'}
                         </strong>
                       </div>
                       <button
@@ -1601,7 +1668,7 @@ export default function TeamApp({
                       <h2>Simulasi target</h2>
                       <p>Berdasarkan harga dan HPP saat ini</p>
                     </div>
-                    <Sparkles size={22} />
+                    <TrendingUp size={22} />
                   </div>
                   {bep.ready ? (
                     <div className="calculation">
@@ -1772,15 +1839,9 @@ export default function TeamApp({
                       Catat penarikan dana <ArrowUpRight size={16} />
                     </button>
                   ) : (
-                    <p
-                      style={{
-                        fontSize: '12px',
-                        color: '#64748b',
-                        textAlign: 'center',
-                        margin: '8px 0',
-                      }}
-                    >
-                      🔒 Penarikan dana hanya dapat dicatat oleh Owner.
+                    <p className="owner-lock-note">
+                      <Lock size={13} />
+                      <span>Penarikan dana hanya dapat dicatat oleh Owner.</span>
                     </p>
                   )}
                 </section>
@@ -2006,7 +2067,7 @@ export default function TeamApp({
                       ? new Intl.NumberFormat('id-ID', {
                           maximumFractionDigits: 2,
                         }).format(Number(form.price) / Number(form.packQty)) + ' rupiah'
-                      : '—'}
+                      : 'Isi harga & kemasan'}
                   </strong>
                 </div>
                 <p className="helper">
@@ -2026,7 +2087,9 @@ export default function TeamApp({
                   <div className="product-image-field">
                     <div className="product-image-header">
                       <span>Gambar menu (opsional)</span>
-                      <span className="role-badge owner">👑 Khusus Owner</span>
+                      <span className="role-badge owner">
+                        <ShieldCheck size={11} /> Khusus Owner
+                      </span>
                     </div>
                     <div className="product-image-controls">
                       <div className="product-image-preview">
@@ -2264,7 +2327,7 @@ export default function TeamApp({
                       disabled={!hpp(p, rows).ready || p.data.price <= 0}
                     >
                       {p.data.name}{' '}
-                      {!hpp(p, rows).ready || p.data.price <= 0 ? '— belum siap' : ''}
+                      {!hpp(p, rows).ready || p.data.price <= 0 ? '(belum siap)' : ''}
                     </option>
                   ))}
                 </Select>

@@ -140,7 +140,7 @@ export default async function Login({
                   </li>
                 </ul>
                 <p style={{ margin: 0, fontWeight: 600 }}>
-                  ⚠️ Penting: Lakukan <strong>Redeploy</strong> di Vercel setelah
+                  Penting: Lakukan <strong>Redeploy</strong> di Vercel setelah
                   menambahkan Environment Variables agar aktif!
                 </p>
               </div>

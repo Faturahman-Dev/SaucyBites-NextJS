@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Crown, Users, LockKeyhole, Sparkles } from 'lucide-react';
+import { Crown, Users, LockKeyhole, Zap } from 'lucide-react';
 import type { UserRole } from '@/lib/session';
 
 export default function LoginForm({
@@ -89,7 +89,7 @@ export default function LoginForm({
               color: '#334155',
             }}
           >
-            <Sparkles size={15} color="#d97706" />
+            <Zap size={15} color="#b45309" />
             <span>Mode Dev: Akses Cepat 1-Klik</span>
           </div>
           <div className="quick-login-actions">
@@ -100,7 +100,7 @@ export default function LoginForm({
               className="btn subtle"
               style={{ fontSize: '12px' }}
             >
-              👑 Masuk Owner
+              <Crown size={14} /> Masuk Owner
             </button>
             <button
               type="submit"
@@ -109,7 +109,7 @@ export default function LoginForm({
               className="btn subtle"
               style={{ fontSize: '12px' }}
             >
-              👥 Masuk Anggota
+              <Users size={14} /> Masuk Anggota
             </button>
           </div>
           <small style={{ color: '#64748b', fontSize: '11px', marginTop: '2px' }}>
