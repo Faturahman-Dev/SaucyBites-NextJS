@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getCustomerFromCookie } from '@/lib/auth';
 import { getCatalogProducts, getStoreConfig } from '@/lib/catalog';
 import type { CatalogProduct } from '@/lib/catalog-types';
 import { CartProvider } from '@/context/CartContext';
@@ -18,6 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CatalogPage() {
   const store = getStoreConfig();
+  const customerSession = await getCustomerFromCookie();
   let products: CatalogProduct[] = [];
   let loadError = false;
   try {
@@ -29,7 +31,12 @@ export default async function CatalogPage() {
 
   return (
     <CartProvider products={products}>
-      <CatalogView products={products} store={store} loadError={loadError} />
+      <CatalogView
+        products={products}
+        store={store}
+        loadError={loadError}
+        customerSession={customerSession}
+      />
     </CartProvider>
   );
 }

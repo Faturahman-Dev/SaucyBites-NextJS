@@ -16,3 +16,12 @@ CREATE TABLE `records` (
 	`updated_at` text NOT NULL,
 	`author` text NOT NULL
 );
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `users` (
+	`id` text PRIMARY KEY NOT NULL,
+	`email` text UNIQUE NOT NULL,
+	`name` text NOT NULL,
+	`role` text NOT NULL,
+	`password_hash` text NOT NULL,
+	`created_at` text NOT NULL
+);

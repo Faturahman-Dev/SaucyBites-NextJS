@@ -1,7 +1,15 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createHash } from 'node:crypto';
-import { COOKIE_NAME, verifySession, type TeamUser, type UserRole } from './session';
+import {
+  COOKIE_NAME,
+  CUSTOMER_COOKIE_NAME,
+  verifyCustomerSession,
+  verifySession,
+  type CustomerUser,
+  type TeamUser,
+  type UserRole,
+} from './session';
 
 function cleanEnv(val: string | undefined): string {
   if (!val) return '';
@@ -67,17 +75,14 @@ export function getSessionSecret(): string {
       .update(`${ownerPw}:${memberPw}:saucybites_session_secret_2026`)
       .digest('hex');
   }
-  if (process.env.NODE_ENV === 'development') {
-    return 'saucybites-dev-secret-key-at-least-32-chars-long';
-  }
-  return '';
+  return createHash('sha256')
+    .update('saucybites-default-db-session-secret-2026')
+    .digest('hex');
 }
 
 export function loginConfigured(): boolean {
   const secret = getSessionSecret();
-  return (
-    secret.length >= 32 && (Boolean(getOwnerPassword()) || Boolean(getMemberPassword()))
-  );
+  return secret.length >= 32;
 }
 
 export function getConfigIssues(): string[] {
@@ -120,6 +125,15 @@ export async function getTeamUser(): Promise<TeamUser | null> {
   }
 
   return null;
+}
+
+export async function getCustomerFromCookie(): Promise<CustomerUser | null> {
+  const secret = getSessionSecret();
+  if (!secret || secret.length < 32) return null;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(CUSTOMER_COOKIE_NAME)?.value;
+  if (!token) return null;
+  return verifyCustomerSession(token, secret, Date.now());
 }
 
 export async function requireTeamUser() {

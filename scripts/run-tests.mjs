@@ -12,6 +12,7 @@ const files = [
   'app/api/records/route.ts',
   'lib/database.ts',
   'lib/session.ts',
+  'lib/users.ts',
   'lib/validation.ts',
   'lib/catalog-types.ts',
   'lib/catalog.ts',

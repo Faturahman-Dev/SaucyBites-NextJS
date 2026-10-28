@@ -2068,11 +2068,11 @@ tr:last-child td {
   display: grid;
   place-items: center;
   min-height: 100dvh;
-  padding: 32px;
+  padding: 32px 20px;
   background: var(--bg);
 }
 .login-card {
-  width: min(460px, 100%);
+  width: min(560px, 100%);
   padding: 32px;
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -2081,22 +2081,28 @@ tr:last-child td {
 .login-logo {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   color: #d83c2d;
   font-size: 28px;
   line-height: 36px;
   letter-spacing: -1px;
 }
+.login-logo-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .login-card h1 {
-  margin-bottom: 10px;
-  font-size: 27px;
+  margin-bottom: 8px;
+  font-size: 26px;
 }
 .login-card > p {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   color: #52614f;
   font-size: 13.5px;
-  line-height: 1.7;
+  line-height: 1.65;
 }
 .login-card > small {
   display: block;
@@ -2107,22 +2113,23 @@ tr:last-child td {
 }
 .login-role-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 .login-role-tab {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  min-height: 76px;
+  gap: 4px;
+  min-height: 78px;
   padding: 12px 8px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: #fafbf7;
   cursor: pointer;
+  text-align: center;
   transition:
     background 0.15s,
     border-color 0.15s;
@@ -2133,7 +2140,7 @@ tr:last-child td {
   border-color: #c2ccb9;
 }
 .login-role-tab strong {
-  font-size: 13px;
+  font-size: 12.5px;
   color: #21362c;
 }
 .login-role-tab small {
@@ -2153,6 +2160,69 @@ tr:last-child td {
 .login-role-tab.active.owner-tab strong {
   color: #63350d;
 }
+.login-role-tab.active.customer-tab {
+  border-color: #d83c2d;
+  background: #fff2dc;
+  color: #7a3e10;
+}
+.login-role-tab.active.customer-tab strong {
+  color: #21362c;
+}
+.quota-banner {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid #dfe5d8;
+  border-radius: 12px;
+  background: #f7f9f4;
+}
+.quota-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  color: #21362c;
+}
+.quota-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  background: #e6f0df;
+  color: #21362c;
+}
+.quota-pill.full {
+  background: #fce9e4;
+  color: #9e2318;
+}
+.auth-mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 4px;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #f4f6ef;
+}
+.auth-mode-btn {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #44523d;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.auth-mode-btn.active {
+  background: #21362c;
+  color: #fff;
+}
 .quick-login-box {
   margin-top: 18px;
   padding: 14px;
@@ -2165,7 +2235,7 @@ tr:last-child td {
 }
 .quick-login-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -2539,7 +2609,19 @@ tr:last-child td {
     padding: 16px;
   }
   .login-card {
-    padding: 24px;
+    padding: 20px;
+  }
+  .login-role-tabs,
+  .quick-login-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .login-role-tab {
+    min-height: 56px;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 10px 14px;
+    gap: 10px;
+    text-align: left;
   }
 }
 @media (max-width: 380px) {

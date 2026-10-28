@@ -8,9 +8,17 @@ import * as model from '../.test-build/app/model.js';
 import {
   signSession,
   verifySession,
+  signCustomerSession,
+  verifyCustomerSession,
   passwordMatches,
   SESSION_AGE,
 } from '../.test-build/lib/session.js';
+import {
+  isValidGmail,
+  registerTeamAccount,
+  authenticateTeamAccount,
+  getTeamAccountSummary,
+} from '../.test-build/lib/users.js';
 import {
   buildOrderMessage,
   buildWhatsAppUrl,
@@ -367,6 +375,80 @@ assert.equal(catItems.length, 1);
 assert.equal(catItems[0].id, 'teriyaki');
 assert.equal(catItems[0].price, 15000);
 checks += 10;
+
+// Test Gmail validation, max 4 accounts database limit, and Customer session
+assert.equal(isValidGmail('owner.saucybites@gmail.com'), true);
+assert.equal(isValidGmail('TIM.KASIR+1@GMAIL.COM'), true);
+assert.equal(isValidGmail('user@yahoo.com'), false);
+assert.equal(isValidGmail('user@gmail.co.id'), false);
+assert.equal(isValidGmail('bukan-email'), false);
+
+const badDomain = await registerTeamAccount({
+  email: 'budi@yahoo.com',
+  name: 'Budi',
+  password: 'password123',
+  role: 'owner',
+});
+assert.equal(badDomain.ok, false);
+assert.equal(badDomain.code, 'non_gmail');
+
+for (let i = 1; i <= 4; i++) {
+  const reg = await registerTeamAccount({
+    email: `akun${i}@gmail.com`,
+    name: `Akun ${i}`,
+    password: `rahasia${i}`,
+    role: i === 1 ? 'owner' : 'member',
+  });
+  assert.equal(reg.ok, true);
+}
+
+const dup = await registerTeamAccount({
+  email: 'AKUN1@gmail.com',
+  name: 'Akun Duplikat',
+  password: 'password123',
+  role: 'owner',
+});
+assert.equal(dup.ok, false);
+assert.equal(dup.code, 'exists');
+
+const fifth = await registerTeamAccount({
+  email: 'akun5@gmail.com',
+  name: 'Akun Kelima',
+  password: 'password123',
+  role: 'member',
+});
+assert.equal(fifth.ok, false);
+assert.equal(fifth.code, 'quota_full');
+
+const summary = await getTeamAccountSummary();
+assert.equal(summary.count, 4);
+assert.equal(summary.remaining, 0);
+
+const authOk = await authenticateTeamAccount({
+  email: 'akun1@gmail.com',
+  password: 'rahasia1',
+  role: 'owner',
+});
+assert.equal(authOk.ok, true);
+
+const authWrongRole = await authenticateTeamAccount({
+  email: 'akun2@gmail.com',
+  password: 'rahasia2',
+  role: 'owner',
+});
+assert.equal(authWrongRole.ok, false);
+assert.equal(authWrongRole.code, 'role_mismatch');
+
+const custToken = signCustomerSession(
+  { name: 'Siti', email: 'siti@gmail.com', phone: '08123456789' },
+  secret,
+  1000,
+);
+const verifiedCust = verifyCustomerSession(custToken, secret, 2000);
+assert.equal(verifiedCust.name, 'Siti');
+assert.equal(verifiedCust.email, 'siti@gmail.com');
+checks += 20;
+
 db.close();
 console.log(
   JSON.stringify({

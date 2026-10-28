@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useCart, MAX_QTY } from '@/context/CartContext';
 import type { StoreConfig } from '@/lib/catalog-types';
+import type { CustomerUser } from '@/lib/session';
 import {
   buildOrderMessage,
   buildWhatsAppUrl,
@@ -42,13 +43,19 @@ export default function CartDrawer({
   open,
   onClose,
   store,
+  customerSession,
 }: {
   open: boolean;
   onClose: () => void;
   store: StoreConfig;
+  customerSession?: CustomerUser | null;
 }) {
   const { items, count, total, hasUnavailable, setQty, add, remove, clear } = useCart();
-  const [customer, setCustomer] = useState<CustomerInfo>(emptyCustomer);
+  const [customer, setCustomer] = useState<CustomerInfo>(() => ({
+    ...emptyCustomer,
+    name: customerSession?.name || '',
+    phone: customerSession?.phone || '',
+  }));
   const [errors, setErrors] = useState<Errors>({});
   const [sentUrl, setSentUrl] = useState('');
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -56,15 +63,22 @@ export default function CartDrawer({
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(CUSTOMER_KEY) || 'null');
-      if (saved && typeof saved === 'object')
+      if (saved && typeof saved === 'object') {
         setCustomer((c) => ({
           ...c,
-          name: String(saved.name || ''),
-          phone: String(saved.phone || ''),
+          name: String(saved.name || customerSession?.name || ''),
+          phone: String(saved.phone || customerSession?.phone || ''),
           address: String(saved.address || ''),
         }));
+      } else if (customerSession) {
+        setCustomer((c) => ({
+          ...c,
+          name: c.name || customerSession.name,
+          phone: c.phone || customerSession.phone || '',
+        }));
+      }
     } catch {}
-  }, []);
+  }, [customerSession]);
 
   useEffect(() => {
     if (!open) return;

@@ -47,7 +47,7 @@ const navGroups = [
   {
     label: 'Operasional & Menu',
     items: [
-      { id: 'overview', name: 'Ringkasan', icon: LayoutDashboard },
+      { id: 'overview', name: 'Dashboard', icon: LayoutDashboard },
       { id: 'sales', name: 'Kasir & penjualan', icon: ShoppingBag },
       { id: 'recipes', name: 'Menu & resep', icon: ChefHat },
       { id: 'ingredients', name: 'Bahan & kemasan', icon: Package },

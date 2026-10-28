@@ -1,8 +1,18 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { AlertCircle, Flame, MessageCircle, Search, ShoppingBag, X } from 'lucide-react';
+import {
+  AlertCircle,
+  Flame,
+  LogOut,
+  MessageCircle,
+  Search,
+  ShoppingBag,
+  UserCheck,
+  X,
+} from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import type { CatalogProduct, StoreConfig } from '@/lib/catalog-types';
+import type { CustomerUser } from '@/lib/session';
 import { formatRupiah } from '@/utils/whatsapp';
 import ProductCard from './product-card';
 import CartDrawer from './cart-drawer';
@@ -13,10 +23,12 @@ export default function CatalogView({
   products,
   store,
   loadError,
+  customerSession,
 }: {
   products: CatalogProduct[];
   store: StoreConfig;
   loadError?: boolean;
+  customerSession?: CustomerUser | null;
 }) {
   const { items, count, total, hydrated } = useCart();
   const [query, setQuery] = useState('');
@@ -64,9 +76,38 @@ export default function CatalogView({
           </a>
 
           <div className="flex items-center gap-2.5">
+            {customerSession ? (
+              <div className="hidden items-center gap-2 rounded-[9px] border border-[#3c5141] bg-[#2d4636] px-3 py-1.5 text-xs text-[#e1eadd] sm:inline-flex">
+                <UserCheck className="h-3.5 w-3.5 text-[#ffc866]" />
+                <div className="leading-tight">
+                  <strong className="block font-bold text-white">
+                    {customerSession.name}
+                  </strong>
+                  <span className="text-[11px] text-[#bcccbf]">
+                    {customerSession.email}
+                  </span>
+                </div>
+                <a
+                  href="/logout?role=customer"
+                  title="Keluar akun Customer"
+                  aria-label="Keluar akun Customer"
+                  className="ml-1 grid h-8 w-8 place-items-center rounded-[7px] text-[#c5d5c8] transition hover:bg-[#3c5545] hover:text-white"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            ) : (
+              <a
+                href="/login?role=customer"
+                className="hidden min-h-11 items-center rounded-[9px] border border-[#3c5141] bg-[#2d4636] px-3.5 py-2 text-xs font-semibold text-[#e1eadd] transition hover:bg-[#3c5545] sm:inline-flex"
+              >
+                Login Customer
+              </a>
+            )}
+
             <a
               href="/"
-              className="hidden min-h-11 items-center rounded-[9px] border border-[#3c5141] bg-[#2d4636] px-3.5 py-2 text-xs font-semibold text-[#e1eadd] transition hover:bg-[#3c5545] sm:inline-flex"
+              className="hidden min-h-11 items-center rounded-[9px] border border-[#3c5141] bg-[#2d4636] px-3.5 py-2 text-xs font-semibold text-[#e1eadd] transition hover:bg-[#3c5545] md:inline-flex"
             >
               Ruang Tim
             </a>
@@ -318,16 +359,29 @@ export default function CatalogView({
             <b className="font-bold text-[#222b25]">{store.name}</b> · Good bites. Better
             teamwork.
           </span>
-          <a
-            href="/"
-            className="inline-flex min-h-11 items-center px-2 font-semibold text-[#21362c] underline-offset-4 hover:underline"
-          >
-            Masuk Ruang Tim
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href="/login?role=customer"
+              className="inline-flex min-h-11 items-center px-2 font-semibold text-[#21362c] underline-offset-4 hover:underline"
+            >
+              {customerSession ? `Akun: ${customerSession.email}` : 'Login Customer'}
+            </a>
+            <a
+              href="/"
+              className="inline-flex min-h-11 items-center px-2 font-semibold text-[#21362c] underline-offset-4 hover:underline"
+            >
+              Masuk Ruang Tim
+            </a>
+          </div>
         </div>
       </footer>
 
-      <CartDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} store={store} />
+      <CartDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        store={store}
+        customerSession={customerSession}
+      />
     </div>
   );
 }

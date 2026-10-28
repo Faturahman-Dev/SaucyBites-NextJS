@@ -57,10 +57,29 @@ CREATE TABLE IF NOT EXISTS records (
 CREATE TABLE IF NOT EXISTS migrations (
 	name text PRIMARY KEY NOT NULL
 );
+CREATE TABLE IF NOT EXISTS users (
+	id text PRIMARY KEY NOT NULL,
+	email text UNIQUE NOT NULL,
+	name text NOT NULL,
+	role text NOT NULL,
+	password_hash text NOT NULL,
+	created_at text NOT NULL
+);
 `;
   await client.executeMultiple(initSql);
   globalForDb.saucybitesInitialized = true;
 }
+
+const USERS_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS users (
+	id text PRIMARY KEY NOT NULL,
+	email text UNIQUE NOT NULL,
+	name text NOT NULL,
+	role text NOT NULL,
+	password_hash text NOT NULL,
+	created_at text NOT NULL
+);
+`;
 
 export function getDb(): DatabaseSync {
   const dbPath = getDbFilePath();
@@ -89,6 +108,7 @@ CREATE TABLE IF NOT EXISTS records (
 CREATE TABLE IF NOT EXISTS migrations (
 	name text PRIMARY KEY NOT NULL
 );
+${USERS_TABLE_SQL}
 `);
     globalForDb.saucybitesDb = db;
     return db;
@@ -96,6 +116,7 @@ CREATE TABLE IF NOT EXISTS migrations (
   if (!globalForDb.saucybitesDb) {
     const db = new DatabaseSync(dbPath);
     db.exec('PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; PRAGMA foreign_keys=ON;');
+    db.exec(USERS_TABLE_SQL);
     globalForDb.saucybitesDb = db;
   }
   return globalForDb.saucybitesDb;
